@@ -222,42 +222,44 @@ void LiPkg::ToLaserscan(std::vector<PointData> src) {
   }
   last_times_stamp = tmp_times_stamp;
   // Calculate the number of scanning points
-  int beam_size = ceil((angle_max - angle_min) / angle_increment);
-  output_.header.stamp = clock.now();
-  output_.header.frame_id = frame_id_;
-  output_.angle_min = angle_min;
-  output_.angle_max = angle_max;
-  output_.range_min = range_min;
-  output_.range_max = range_max;
-  output_.angle_increment = angle_increment;
-  output_.time_increment = dealt_times_stamp;
-  output_.scan_time = 0.0;
-  // First fill all the data with Nan
-  output_.ranges.assign(beam_size, std::numeric_limits<float>::quiet_NaN());
-  output_.intensities.assign(beam_size, std::numeric_limits<float>::quiet_NaN());
+  if (speed_ > 0) {
+    unsigned int beam_size = static_cast<unsigned int>(ceil((angle_max - angle_min) / angle_increment));
+    output_.header.stamp = clock.now();
+    output_.header.frame_id = frame_id_;
+    output_.angle_min = angle_min;
+    output_.angle_max = angle_max;
+    output_.range_min = range_min;
+    output_.range_max = range_max;
+    output_.angle_increment = angle_increment;
+    output_.time_increment = dealt_times_stamp;
+    output_.scan_time = 0.0;
+    // First fill all the data with Nan
+    output_.ranges.assign(beam_size, std::numeric_limits<float>::quiet_NaN());
+    output_.intensities.assign(beam_size, std::numeric_limits<float>::quiet_NaN());
 
-  int last_index = 0;
-  for (auto point : src) {
-    float range = point.distance / 1000.f;  // distance unit transform to meters
-    float angle = ANGLE_TO_RADIAN(point.angle);
-    int index = (int)((angle - output_.angle_min) / output_.angle_increment);
-    if (index >= 0 && index < beam_size) {
-      // If the current content is Nan, it is assigned directly
-      if (std::isnan(output_.ranges[index])) {
-        output_.ranges[index] = range;
-        int err = index - last_index;
-				if (err == 2){
-					output_.ranges[index - 1] = range;
-					output_.intensities[index - 1] = point.confidence;
-				}
-      } else { // Otherwise, only when the distance is less than the current
-               //   value, it can be re assigned
-        if (range < output_.ranges[index]) {
+    unsigned int last_index = 0;
+    for (auto point : src) {
+      float range = point.distance / 1000.f;  // distance unit transform to meters
+      float angle = ANGLE_TO_RADIAN(point.angle);
+      unsigned int index = static_cast<unsigned int>((angle - output_.angle_min) / output_.angle_increment);
+      if (index >= 0 && index < beam_size) {
+        // If the current content is Nan, it is assigned directly
+        if (std::isnan(output_.ranges[index])) {
           output_.ranges[index] = range;
+          unsigned int err = index - last_index;
+          if (err == 2){
+            output_.ranges[index - 1] = range;
+            output_.intensities[index - 1] = point.confidence;
+          }
+        } else { // Otherwise, only when the distance is less than the current
+                //   value, it can be re assigned
+          if (range < output_.ranges[index]) {
+            output_.ranges[index] = range;
+          }
         }
+        output_.intensities[index] = point.confidence;
+        last_index = index;
       }
-      output_.intensities[index] = point.confidence;
-      last_index = index;
     }
   }
 }

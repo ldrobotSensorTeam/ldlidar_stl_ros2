@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   node->get_parameter("port_name", port_name);
   node->get_parameter("frame_id", frame_id);
 
-  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.1");
+  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.2");
   RCLCPP_INFO(node->get_logger(), " [ldrobot] <topic_name>: %s ,<port_name>: %s ,<frame_id>: %s", 
               topic_name.c_str(), port_name.c_str(), frame_id.c_str());
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 					  << "angle_min: " << RADIAN_TO_ANGLED(data.angle_min) << " "
 					  << "angle_max: " << RADIAN_TO_ANGLED(data.angle_max) << std::endl; 
 			std::cout << "----------------------------" << std::endl;
-			for (int i = 0; i < lens; i++)
+			for (unsigned int i = 0; i < lens; i++)
 			{
 				std::cout << "[ldrobot] range: " <<  data.ranges[i] << " " 
 						  << "intensites: " <<  data.intensities[i] << std::endl;

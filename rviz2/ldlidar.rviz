@@ -31,7 +31,7 @@ Visualization Manager:
     - Alpha: 0.5
       Cell Size: 1
       Class: rviz_default_plugins/Grid
-      Color: 160; 160; 164
+      Color: 238; 238; 236
       Enabled: true
       Line Style:
         Line Width: 0.029999999329447746
@@ -43,7 +43,7 @@ Visualization Manager:
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 10
+      Plane Cell Count: 100
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
@@ -61,9 +61,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 250
+      Max Intensity: 248
       Min Color: 0; 0; 0
-      Min Intensity: 87
+      Min Intensity: 19
       Name: LaserScan
       Position Transformer: XYZ
       Selectable: true
@@ -72,9 +72,9 @@ Visualization Manager:
       Style: Flat Squares
       Topic:
         Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
+        Durability Policy: System Default
+        History Policy: System Default
+        Reliability Policy: System Default
         Value: /LiDAR/LD06
       Use Fixed Frame: true
       Use rainbow: true
@@ -88,7 +88,7 @@ Visualization Manager:
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
+    Background Color: 136; 138; 133
     Fixed Frame: lidar_frame
     Frame Rate: 30
   Name: root
@@ -129,7 +129,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.137582778930664
+      Distance: 11.549262046813965
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -144,10 +144,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 1.5247963666915894
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.0303993225097656
+      Yaw: 3.090400218963623
     Saved: ~
 Window Geometry:
   Displays:
