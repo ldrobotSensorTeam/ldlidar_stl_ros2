@@ -8,13 +8,13 @@
 
 ## 0. 获取雷达的ROS2功能包
 ```bash
-cd ~
+$ cd ~
 
-mkdir -p ldlidar_ros2_ws/src
+$ mkdir -p ldlidar_ros2_ws/src
 
-cd ldlidar_ros2_ws/src
+$ cd ldlidar_ros2_ws/src
 
-git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
+$ git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
 ```
 ## 1. 系统设置
 - 第一步，通过板载串口或者USB转串口模块(例如,cp2102模块)的方式使雷达连接到你的系统主板.
@@ -22,7 +22,7 @@ git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
 	- 实际使用时，根据雷达在你的系统中的实际挂载情况来设置，可以使用`ls -l /dev`命令查看.
 
 ``` bash
-sudo chmod 777 /dev/ttyUSB0
+$ sudo chmod 777 /dev/ttyUSB0
 ```
 - 第三步，修改`launch/`目录下雷达产品型号对应的lanuch文件中的`port_name`值，以ld06.launch.py为例，如下所示.
 
@@ -51,21 +51,21 @@ def generate_launch_description():
 使用colcon编译，在readme文件所在目录下执行如下指令.
 
 ```bash
-colcon build
+$ colcon build
 ```
 ## 3. 运行方法
 
 ```bash
-source install/setup.bash
+$ source install/setup.bash
 ```
 - 产品型号为 LDROBOT LiDAR LD06
 
   ``` bash
-  ros2 launch ldlidar_stl_ros2 ld06.launch.py
+  $ ros2 launch ldlidar_stl_ros2 ld06.launch.py
   ```
 - 产品型号为 LDROBOT LiDAR LD19
   ```bash
-  ros2 launch ldlidar_stl_ros2 ld19.launch.py
+  $ ros2 launch ldlidar_stl_ros2 ld19.launch.py
   ```
 ##   4. 测试
 
@@ -88,13 +88,13 @@ $ rviz2
 > - LDROBOT LiDAR LD19
 ## 0. get LiDAR ROS2 Package
 ```bash
-cd ~
+$ cd ~
 
-mkdir -p ldlidar_ros2_ws/src
+$ mkdir -p ldlidar_ros2_ws/src
 
-cd ldlidar_ros2_ws/src
+$ cd ldlidar_ros2_ws/src
 
-git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
+$ git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
 ```
 ## step 1: system setup
 - Connect the LiDAR to your system motherboard via an onboard serial port or usB-to-serial module (for example, CP2102 module).
@@ -104,7 +104,7 @@ git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
   - In actual use, the LiDAR can be set according to the actual mounted status of your system, you can use 'ls -l /dev' command to view.
 
 ``` bash
-sudo chmod 777 /dev/ttyUSB0
+$ sudo chmod 777 /dev/ttyUSB0
 ```
 - Modify the `port_name` value in the Lanuch file corresponding to the radar product model under `launch/`, using `ld06.launch.py` as an example, as shown below.
 
@@ -134,21 +134,21 @@ def generate_launch_description():
 Run the following command in the directory where the readme file resides.
 
 ```bash
-colcon build
+$ colcon build
 ```
 ## step 3: run
 
 ```bash
-source install/setup.bash
+$ source install/setup.bash
 ```
 - The product is LDROBOT LiDAR LD06
 
   ``` bash
-  ros2 launch ldlidar_stl_ros2 ld06.launch.py
+  $ ros2 launch ldlidar_stl_ros2 ld06.launch.py
   ```
 - The product is LDROBOT LiDAR LD19
   ``` bash
-  ros2 launch ldlidar_stl_ros2 ld19.launch.py
+  $ ros2 launch ldlidar_stl_ros2 ld19.launch.py
   ```
 
 ## step 3: test
@@ -157,7 +157,7 @@ source install/setup.bash
 
 - new a terminal (Ctrl + Alt + T) and use Rviz2 tool(run command: `rviz2`) ,open the `ldlidar.rviz` file below the rviz2 folder of the readme file directory
 ```bash
-rviz2
+$ rviz2
 ```
 
 | Product:          | Fixed Frame: | Topic:        |
