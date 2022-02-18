@@ -14,7 +14,7 @@ mkdir -p ldlidar_ros2_ws/src
 
 cd ldlidar_ros2_ws/src
 
-git clone  xxx.git
+git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
 ```
 ## 1. 系统设置
 - 第一步，通过板载串口或者USB转串口模块(例如,cp2102模块)的方式使雷达连接到你的系统主板.
@@ -94,7 +94,7 @@ mkdir -p ldlidar_ros2_ws/src
 
 cd ldlidar_ros2_ws/src
 
-git clone  xxx.git
+git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
 ```
 ## step 1: system setup
 - Connect the LiDAR to your system motherboard via an onboard serial port or usB-to-serial module (for example, CP2102 module).
