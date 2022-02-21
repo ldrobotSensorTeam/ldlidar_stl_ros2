@@ -34,33 +34,36 @@ int main(int argc, char **argv) {
   // create a ROS2 Node
   auto node = std::make_shared<rclcpp::Node>("ldlidar_published"); 
 
+  std::string product_name;
 	std::string topic_name;
 	std::string port_name;
 	std::string frame_id;
   
   // declare ros2 param
+  node->declare_parameter<std::string>("product_name", product_name);
   node->declare_parameter<std::string>("topic_name", topic_name);
   node->declare_parameter<std::string>("port_name", port_name);
   node->declare_parameter<std::string>("frame_id", frame_id);
 
   // get ros2 param
+  node->get_parameter("product_name", product_name);
   node->get_parameter("topic_name", topic_name);
   node->get_parameter("port_name", port_name);
   node->get_parameter("frame_id", frame_id);
 
-  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.4");
-  RCLCPP_INFO(node->get_logger(), " [ldrobot] <topic_name>: %s ,<port_name>: %s ,<frame_id>: %s", 
-              topic_name.c_str(), port_name.c_str(), frame_id.c_str());
+  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.5");
+  RCLCPP_INFO(node->get_logger(), " [ldrobot] <product_name>: %s ,<topic_name>: %s ,<port_name>: %s ,<frame_id>: %s", 
+              product_name.c_str(), topic_name.c_str(), port_name.c_str(), frame_id.c_str());
 
 
   LiPkg *lidar = new LiPkg(frame_id);
   CmdInterfaceLinux cmd_port;
 
   if (port_name.empty()) {
-    RCLCPP_ERROR(node->get_logger(), " [ldrobot] Can't find LiDAR LD06 device");
+    RCLCPP_ERROR(node->get_logger(), " [ldrobot] Can't find %s device.", product_name.c_str());
     exit(EXIT_FAILURE);
   }else {
-    RCLCPP_INFO(node->get_logger(), " [ldrobot] FOUND LiDAR_LD06");
+    RCLCPP_INFO(node->get_logger(), " [ldrobot] Found %s device.", product_name.c_str());
   }
 
   cmd_port.SetReadCallback([&lidar](const char *byte, size_t len) {
@@ -70,9 +73,9 @@ int main(int argc, char **argv) {
   });
 
   if (cmd_port.Open(port_name)) {
-    RCLCPP_INFO(node->get_logger(), " [ldrobot] open LiDAR_LD06 device %s success!", port_name.c_str());
+    RCLCPP_INFO(node->get_logger(), " [ldrobot] open %s device %s success!", product_name.c_str(), port_name.c_str());
   }else {
-    RCLCPP_ERROR(node->get_logger(), " [ldrobot] open LiDAR_LD06 device %s fail!", port_name.c_str());
+    RCLCPP_ERROR(node->get_logger(), " [ldrobot] open %s device %s fail!", product_name.c_str(), port_name.c_str());
     exit(EXIT_FAILURE);
   }
 

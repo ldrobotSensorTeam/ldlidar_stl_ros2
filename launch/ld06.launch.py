@@ -10,6 +10,7 @@ def generate_launch_description():
       name='LD06',
       output='screen',
       parameters=[
+        {'product_name': 'LDLiDAR_LD06'},
         {'topic_name': 'LiDAR/LD06'},
         {'port_name': '/dev/ttyUSB0'},
         {'frame_id': 'lidar_frame'}

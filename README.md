@@ -22,6 +22,8 @@ $ git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
 	- 实际使用时，根据雷达在你的系统中的实际挂载情况来设置，可以使用`ls -l /dev`命令查看.
 
 ``` bash
+$ cd ~/ldlidar_ros2_ws
+
 $ sudo chmod 777 /dev/ttyUSB0
 ```
 - 第三步，修改`launch/`目录下雷达产品型号对应的lanuch文件中的`port_name`值，以ld06.launch.py为例，如下所示.
@@ -39,6 +41,7 @@ def generate_launch_description():
       name='LD06',
       output='screen',
       parameters=[
+        {'product_name': 'LDLiDAR_LD06'},
         {'topic_name': 'LiDAR/LD06'},
         {'port_name': '/dev/ttyUSB0'},
         {'frame_id': 'lidar_frame'}
@@ -104,6 +107,8 @@ $ git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
   - In actual use, the LiDAR can be set according to the actual mounted status of your system, you can use 'ls -l /dev' command to view.
 
 ``` bash
+$ cd ~/ldlidar_ros2_ws
+
 $ sudo chmod 777 /dev/ttyUSB0
 ```
 - Modify the `port_name` value in the Lanuch file corresponding to the radar product model under `launch/`, using `ld06.launch.py` as an example, as shown below.
@@ -121,6 +126,7 @@ def generate_launch_description():
       name='LD06',
       output='screen',
       parameters=[
+        {'product_name': 'LDLiDAR_LD06'},
         {'topic_name': 'LiDAR/LD06'},
         {'port_name': '/dev/ttyUSB0'},
         {'frame_id': 'lidar_frame'}

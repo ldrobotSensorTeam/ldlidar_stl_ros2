@@ -242,7 +242,7 @@ void LiPkg::ToLaserscan(std::vector<PointData> src) {
       float range = point.distance / 1000.f;  // distance unit transform to meters
       float angle = ANGLE_TO_RADIAN(point.angle);
       unsigned int index = static_cast<unsigned int>((angle - output_.angle_min) / output_.angle_increment);
-      if (index >= 0 && index < beam_size) {
+      if (index < beam_size) {
         // If the current content is Nan, it is assigned directly
         if (std::isnan(output_.ranges[index])) {
           output_.ranges[index] = range;
