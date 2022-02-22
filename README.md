@@ -51,9 +51,11 @@ def generate_launch_description():
 ```
 ## 2. 编译方法
 
-使用colcon编译，在readme文件所在目录下执行如下指令.
+使用colcon编译.
 
 ```bash
+$ cd ~/ldlidar_ros2_ws
+
 $ colcon build
 ```
 ## 3. 运行方法
@@ -134,12 +136,14 @@ def generate_launch_description():
     )
   ])
 ```
-  
+
 ## step 2: build
 
-Run the following command in the directory where the readme file resides.
+Run the following command.
 
 ```bash
+$ cd ~/ldlidar_ros2_ws
+
 $ colcon build
 ```
 ## step 3: run
