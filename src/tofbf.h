@@ -30,8 +30,8 @@
 
 class Tofbf {
  private:
-  const int kConfidenceLow = 15;  // Low confidence threshold
-  const int kConfidenceSingle = 220;  // Discrete points require higher confidence
+  const int kIntensityLow = 15;  // Low intensity threshold
+  const int kIntensitySingle = 220;  // Discrete points require higher intensity
   const int kScanFrequency = 4500;  // Default scan frequency, to change, read
                                     // according to radar protocol
   double curr_speed_;

@@ -40,7 +40,7 @@ enum {
 
 typedef struct __attribute__((packed)) {
   uint16_t distance;
-  uint8_t confidence;
+  uint8_t intensity;
 } LidarPointStructDef;
 
 typedef struct __attribute__((packed)) {

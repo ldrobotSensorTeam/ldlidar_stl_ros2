@@ -145,14 +145,14 @@ bool LiPkg::Parse(const uint8_t *data, long len) {
           if (data.angle >= 360.0) {
             data.angle -= 360.0;
           }
-          data.confidence = pkg.point[i].confidence;
+          data.intensity = pkg.point[i].intensity;
           one_pkg_[i] = data;
           // std::cout << "data.angle " << data.angle << " data.distance " <<
           // data.distance
-          //           << " data.confidence " << (int)data.confidence <<
+          //           << " data.intensity " << (int)data.intensity <<
           //           std::endl;
           frame_tmp_.push_back(
-              PointData(data.angle, data.distance, data.confidence));
+              PointData(data.angle, data.distance, data.intensity));
         }
         // prevent angle invert
         one_pkg_.back().angle = end;
@@ -240,7 +240,8 @@ void LiPkg::ToLaserscan(std::vector<PointData> src) {
     unsigned int last_index = 0;
     for (auto point : src) {
       float range = point.distance / 1000.f;  // distance unit transform to meters
-      float angle = ANGLE_TO_RADIAN(point.angle);
+      float dir_angle = static_cast<float>(360.f - point.angle); // lidar rotation data flow changed from clockwise to counterclockwise
+      float angle = ANGLE_TO_RADIAN(dir_angle); // lidar angle unit form degree transform to radian
       unsigned int index = static_cast<unsigned int>((angle - output_.angle_min) / output_.angle_increment);
       if (index < beam_size) {
         // If the current content is Nan, it is assigned directly
@@ -249,7 +250,7 @@ void LiPkg::ToLaserscan(std::vector<PointData> src) {
           unsigned int err = index - last_index;
           if (err == 2){
             output_.ranges[index - 1] = range;
-            output_.intensities[index - 1] = point.confidence;
+            output_.intensities[index - 1] = point.intensity;
           }
         } else { // Otherwise, only when the distance is less than the current
                 //   value, it can be re assigned
@@ -257,7 +258,7 @@ void LiPkg::ToLaserscan(std::vector<PointData> src) {
             output_.ranges[index] = range;
           }
         }
-        output_.intensities[index] = point.confidence;
+        output_.intensities[index] = point.intensity;
         last_index = index;
       }
     }

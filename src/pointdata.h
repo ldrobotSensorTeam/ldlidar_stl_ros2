@@ -30,21 +30,21 @@ struct PointData {
   // Polar coordinate representation
   float angle;         // Angle ranges from 0 to 359 degrees
   uint16_t distance;   // Distance is measured in millimeters
-  uint8_t confidence;  // Confidence is 0 to 255
+  uint8_t intensity;  // Intensity is 0 to 255
   // Cartesian coordinate representation
   double x;
   double y;
-  PointData(float angle, uint16_t distance, uint8_t confidence, double x = 0,
+  PointData(float angle, uint16_t distance, uint8_t intensity, double x = 0,
             double y = 0) {
     this->angle = angle;
     this->distance = distance;
-    this->confidence = confidence;
+    this->intensity = intensity;
     this->x = x;
     this->y = y;
   }
   PointData() {}
   friend std::ostream &operator<<(std::ostream &os, const PointData &data) {
-    os << data.angle << " " << data.distance << " " << (int)data.confidence
+    os << data.angle << " " << data.distance << " " << (int)data.intensity
        << " " << data.x << " " << data.y;
     return os;
   }
