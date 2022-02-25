@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
   node->get_parameter("port_name", port_name);
   node->get_parameter("frame_id", frame_id);
 
-  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.6");
+  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.7");
   RCLCPP_INFO(node->get_logger(), " [ldrobot] <product_name>: %s ,<topic_name>: %s ,<port_name>: %s ,<frame_id>: %s", 
               product_name.c_str(), topic_name.c_str(), port_name.c_str(), frame_id.c_str());
 
