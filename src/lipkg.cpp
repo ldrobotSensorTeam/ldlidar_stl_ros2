@@ -127,7 +127,7 @@ bool LiPkg::Parse(const uint8_t *data, long len) {
     if (AnalysisOne(data[i])) {
       // parse a package is success
       double diff = (pkg.end_angle / 100 - pkg.start_angle / 100 + 360) % 360;
-      if (diff > (double)pkg.speed * POINT_PER_PACK / 2300 * 3 / 2) {
+      if (diff > (double)pkg.speed * POINT_PER_PACK / kPointFrequence * 3 / 2) {
         error_times_++;
       } else {
         speed_ = pkg.speed; // Degrees per second
@@ -211,7 +211,7 @@ void LiPkg::ToLaserscan(std::vector<PointData> src) {
   angle_max = ANGLE_TO_RADIAN(src.back().angle);
   range_min = 0.02;
   range_max = 12;
-  angle_increment = ANGLE_TO_RADIAN(speed_ / 4500);
+  angle_increment = ANGLE_TO_RADIAN(speed_ / kPointFrequence);
   static uint16_t last_times_stamp = 0;
   uint16_t dealt_times_stamp = 0;
   uint16_t tmp_times_stamp = GetTimestamp();
