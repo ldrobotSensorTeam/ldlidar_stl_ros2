@@ -38,25 +38,39 @@ int main(int argc, char **argv) {
 	std::string topic_name;
 	std::string port_name;
 	std::string frame_id;
+  bool laser_scan_dir = true;
+  bool enable_angle_crop_func = false;
+  double angle_crop_min = 0.0;
+  double angle_crop_max = 0.0;
   
   // declare ros2 param
   node->declare_parameter<std::string>("product_name", product_name);
   node->declare_parameter<std::string>("topic_name", topic_name);
   node->declare_parameter<std::string>("port_name", port_name);
   node->declare_parameter<std::string>("frame_id", frame_id);
+  node->declare_parameter<bool>("laser_scan_dir", laser_scan_dir);
+  node->declare_parameter<bool>("enable_angle_crop_func", enable_angle_crop_func);
+  node->declare_parameter<double>("angle_crop_min", angle_crop_min);
+  node->declare_parameter<double>("angle_crop_max", angle_crop_max);
 
   // get ros2 param
   node->get_parameter("product_name", product_name);
   node->get_parameter("topic_name", topic_name);
   node->get_parameter("port_name", port_name);
   node->get_parameter("frame_id", frame_id);
+  node->get_parameter("laser_scan_dir", laser_scan_dir);
+  node->get_parameter("enable_angle_crop_func", enable_angle_crop_func);
+  node->get_parameter("angle_crop_min", angle_crop_min);
+  node->get_parameter("angle_crop_max", angle_crop_max);
 
-  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.8");
+  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.9");
   RCLCPP_INFO(node->get_logger(), " [ldrobot] <product_name>: %s ,<topic_name>: %s ,<port_name>: %s ,<frame_id>: %s", 
               product_name.c_str(), topic_name.c_str(), port_name.c_str(), frame_id.c_str());
 
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] <laser_scan_dir>: %s,<enable_angle_crop_func>: %s,<angle_crop_min>: %f,<angle_crop_max>: %f",
+   (laser_scan_dir?"Counterclockwise":"Clockwise"), (enable_angle_crop_func?"true":"false"), angle_crop_min, angle_crop_max);
 
-  LiPkg *lidar = new LiPkg(frame_id);
+  LiPkg *lidar = new LiPkg(frame_id, laser_scan_dir, enable_angle_crop_func, angle_crop_min, angle_crop_max);
   CmdInterfaceLinux cmd_port;
 
   if (port_name.empty()) {

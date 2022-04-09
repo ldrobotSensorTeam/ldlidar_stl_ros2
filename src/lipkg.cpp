@@ -61,14 +61,19 @@ uint8_t CalCRC8(const uint8_t *data, uint16_t data_len) {
   return crc;
 }
 
-LiPkg::LiPkg(std::string frame_id)
-    : frame_id_("default"),
+LiPkg::LiPkg(std::string frame_id, bool laser_scan_dir, bool enable_angle_crop_func,
+  double angle_crop_min, double angle_crop_max)
+    : frame_id_(frame_id),
       timestamp_(0),
       speed_(0),
       error_times_(0),
       is_frame_ready_(false),
-      is_pkg_ready_(false) {
-  frame_id_ = frame_id;
+      is_pkg_ready_(false),
+      laser_scan_dir_(laser_scan_dir),
+      enable_angle_crop_func_(enable_angle_crop_func),
+      angle_crop_min_(angle_crop_min),
+      angle_crop_max_(angle_crop_max) {
+
 }
 
 double LiPkg::GetSpeed(void) { return speed_ / 360.0; }
@@ -240,7 +245,23 @@ void LiPkg::ToLaserscan(std::vector<PointData> src) {
     unsigned int last_index = 0;
     for (auto point : src) {
       float range = point.distance / 1000.f;  // distance unit transform to meters
-      float dir_angle = static_cast<float>(360.f - point.angle); // lidar rotation data flow changed from clockwise to counterclockwise
+      float intensity = point.intensity;      // laser receive intensity
+      float dir_angle;
+      
+      if (laser_scan_dir_) {
+        dir_angle = static_cast<float>(360.f - point.angle); // lidar rotation data flow changed 
+                                                             // from clockwise to counterclockwise
+      } else {
+        dir_angle = point.angle;
+      }
+      
+      if (enable_angle_crop_func_) { // Angle crop setting, Mask data within the set angle range
+        if ((dir_angle >= angle_crop_min_) && (dir_angle <= angle_crop_max_)) {
+          range = 0;
+          intensity = 0;
+        }
+      }
+
       float angle = ANGLE_TO_RADIAN(dir_angle); // lidar angle unit form degree transform to radian
       unsigned int index = static_cast<unsigned int>((angle - output_.angle_min) / output_.angle_increment);
       if (index < beam_size) {
@@ -250,7 +271,7 @@ void LiPkg::ToLaserscan(std::vector<PointData> src) {
           unsigned int err = index - last_index;
           if (err == 2){
             output_.ranges[index - 1] = range;
-            output_.intensities[index - 1] = point.intensity;
+            output_.intensities[index - 1] = intensity;
           }
         } else { // Otherwise, only when the distance is less than the current
                 //   value, it can be re assigned
@@ -258,7 +279,7 @@ void LiPkg::ToLaserscan(std::vector<PointData> src) {
             output_.ranges[index] = range;
           }
         }
-        output_.intensities[index] = point.intensity;
+        output_.intensities[index] = intensity;
         last_index = index;
       }
     }
