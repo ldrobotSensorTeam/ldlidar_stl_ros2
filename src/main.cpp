@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   node->get_parameter("angle_crop_min", angle_crop_min);
   node->get_parameter("angle_crop_max", angle_crop_max);
 
-  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.9");
+  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.10");
   RCLCPP_INFO(node->get_logger(), " [ldrobot] <product_name>: %s ,<topic_name>: %s ,<port_name>: %s ,<frame_id>: %s", 
               product_name.c_str(), topic_name.c_str(), port_name.c_str(), frame_id.c_str());
 
