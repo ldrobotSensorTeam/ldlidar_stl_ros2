@@ -63,14 +63,14 @@ int main(int argc, char **argv) {
   node->get_parameter("angle_crop_min", angle_crop_min);
   node->get_parameter("angle_crop_max", angle_crop_max);
 
-  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.10");
+  RCLCPP_INFO(node->get_logger(), " [ldrobot] SDK Pack Version is v2.2.11");
   RCLCPP_INFO(node->get_logger(), " [ldrobot] <product_name>: %s ,<topic_name>: %s ,<port_name>: %s ,<frame_id>: %s", 
               product_name.c_str(), topic_name.c_str(), port_name.c_str(), frame_id.c_str());
 
   RCLCPP_INFO(node->get_logger(), "[ldrobot] <laser_scan_dir>: %s,<enable_angle_crop_func>: %s,<angle_crop_min>: %f,<angle_crop_max>: %f",
    (laser_scan_dir?"Counterclockwise":"Clockwise"), (enable_angle_crop_func?"true":"false"), angle_crop_min, angle_crop_max);
 
-  LiPkg *lidar = new LiPkg(frame_id, laser_scan_dir, enable_angle_crop_func, angle_crop_min, angle_crop_max);
+  LiPkg *lidar = new LiPkg(node, frame_id, laser_scan_dir, enable_angle_crop_func, angle_crop_min, angle_crop_max);
   CmdInterfaceLinux cmd_port;
 
   if (port_name.empty()) {
@@ -103,22 +103,6 @@ int main(int argc, char **argv) {
       lidar->ResetFrameReady();
       // publish ldlidar frame data topic message
       publisher->publish(lidar->GetLaserScan());
-      
-#if 0 
-			sensor_msgs::msg::LaserScan data = lidar->GetLaserScan();
-			unsigned int lens = (data.angle_max - data.angle_min) / data.angle_increment;  
-			std::cout << "[ldrobot] current_speed: " << lidar->GetSpeed() << " " 
-			          << "len: " << lens << " "
-					  << "angle_min: " << RADIAN_TO_ANGLED(data.angle_min) << " "
-					  << "angle_max: " << RADIAN_TO_ANGLED(data.angle_max) << std::endl; 
-			std::cout << "----------------------------" << std::endl;
-			for (unsigned int i = 0; i < lens; i++)
-			{
-				std::cout << "[ldrobot] range: " <<  data.ranges[i] << " " 
-						  << "intensites: " <<  data.intensities[i] << std::endl;
-			}
-			std::cout << "----------------------------" << std::endl;
-#endif
     }
     r.sleep();
   }

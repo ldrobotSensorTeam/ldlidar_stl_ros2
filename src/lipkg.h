@@ -56,7 +56,7 @@ typedef struct __attribute__((packed)) {
 
 class LiPkg {
  public:
-  LiPkg(std::string frame_id, bool laser_scan_dir, bool enable_angle_crop_func,
+  LiPkg(rclcpp::Node::SharedPtr& node, std::string frame_id, bool laser_scan_dir, bool enable_angle_crop_func,
   double angle_crop_min, double angle_crop_max);
   // get Lidar spin speed (Hz)
   double GetSpeed(void); 
@@ -80,10 +80,9 @@ class LiPkg {
   // Get ros2 laserscan type data
   sensor_msgs::msg::LaserScan GetLaserScan() { return output_; }
 
-  rclcpp::Clock clock;
-
  private:
   const int kPointFrequence = 4500;
+  rclcpp::Node::SharedPtr& node_;
   std::string frame_id_;
   uint16_t timestamp_;
   double speed_;
