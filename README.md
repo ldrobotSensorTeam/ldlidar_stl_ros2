@@ -38,9 +38,9 @@ from launch_ros.actions import Node
 '''
 parameters=[
         {'product_name': 'LDLiDAR_LD06'},
-        {'topic_name': 'LiDAR/LD06'},
+        {'topic_name': 'scan'},
         {'port_name': '/dev/ttyUSB0'},
-        {'frame_id': 'lidar_frame'},
+        {'frame_id': 'base_laser'},
         {'laser_scan_dir': True},
         {'enable_angle_crop_func': False},
         {'angle_crop_min': 135.0},
@@ -66,25 +66,40 @@ Parameter Description:
 '''
 
 def generate_launch_description():
-  return LaunchDescription([
-    Node(
-      # ldlidar publisher node
+  # LDROBOT LiDAR publisher node
+  ldlidar_node = Node(
       package='ldlidar_stl_ros2',
       executable='ldlidar_stl_ros2_node',
       name='LD06',
       output='screen',
       parameters=[
         {'product_name': 'LDLiDAR_LD06'},
-        {'topic_name': 'LiDAR/LD06'},
+        {'topic_name': 'scan'},
         {'port_name': '/dev/ttyUSB0'},
-        {'frame_id': 'lidar_frame'},
+        {'frame_id': 'base_laser'},
         {'laser_scan_dir': True},
         {'enable_angle_crop_func': False},
         {'angle_crop_min': 135.0},
         {'angle_crop_max': 225.0}
       ]
-    )
-  ])
+  )
+
+  # base_link to base_laser tf node
+  base_link_to_laser_tf_node = Node(
+    package='tf2_ros',
+    executable='static_transform_publisher',
+    name='base_link_to_base_laser_ld06',
+    arguments=['0','0','0.18','0','0','0','base_link','base_laser']
+  )
+
+
+  # Define LaunchDescription variable
+  ld = LaunchDescription()
+
+  ld.add_action(ldlidar_node)
+  ld.add_action(base_link_to_laser_tf_node)
+
+  return ld
 ```
 ## 2. 编译方法
 
@@ -113,14 +128,25 @@ $ colcon build
 ### 3.2. 启动激光雷达节点
 
 - 产品型号为 LDROBOT LiDAR LD06
-
+  - 启动ld06 lidar node:
   ``` bash
   $ ros2 launch ldlidar_stl_ros2 ld06.launch.py
   ```
+  - 启动ld06 lidar node并显示激光数据在Rviz2上:
+  ``` bash
+  $ ros2 launch ldlidar_stl_ros2 viewer_ld06.launch.py
+  ```
+
 - 产品型号为 LDROBOT LiDAR LD19
-  ```bash
+  - 启动ld19 lidar node:
+  ``` bash
   $ ros2 launch ldlidar_stl_ros2 ld19.launch.py
   ```
+  - 启动ld19 lidar node并显示激光数据在Rviz2上:
+  ``` bash
+  $ ros2 launch ldlidar_stl_ros2 viewer_ld19.launch.py
+  ```
+
 ##   4. 测试
 
 > 代码支持ubuntu20.04 ROS2 foxy版本及以上测试，使用rviz2可视化。
@@ -131,8 +157,8 @@ $ rviz2
 
 | 产品型号:          | Fixed Frame: | Topic:        |
 | ------------------ | ------------ | ------------- |
-| LDROBOT LiDAR LD06 | lidar_frame  | /LiDAR/LD06 |
-| LDROBOT LiDAR LD19 | lidar_frame  | /LiDAR/LD19 |
+| LDROBOT LiDAR LD06 | base_laser  | /scan |
+| LDROBOT LiDAR LD19 | base_laser  | /scan |
 
 
 # Instructions
@@ -174,9 +200,9 @@ from launch_ros.actions import Node
 '''
 parameters=[
         {'product_name': 'LDLiDAR_LD06'},
-        {'topic_name': 'LiDAR/LD06'},
+        {'topic_name': 'scan'},
         {'port_name': '/dev/ttyUSB0'},
-        {'frame_id': 'lidar_frame'},
+        {'frame_id': 'base_laser'},
         {'laser_scan_dir': True},
         {'enable_angle_crop_func': False},
         {'angle_crop_min': 135.0},
@@ -202,25 +228,40 @@ Parameter Description:
 '''
 
 def generate_launch_description():
-  return LaunchDescription([
-    Node(
-      # ldlidar publisher node
+  # LDROBOT LiDAR publisher node
+  ldlidar_node = Node(
       package='ldlidar_stl_ros2',
       executable='ldlidar_stl_ros2_node',
       name='LD06',
       output='screen',
       parameters=[
         {'product_name': 'LDLiDAR_LD06'},
-        {'topic_name': 'LiDAR/LD06'},
+        {'topic_name': 'scan'},
         {'port_name': '/dev/ttyUSB0'},
-        {'frame_id': 'lidar_frame'},
+        {'frame_id': 'base_laser'},
         {'laser_scan_dir': True},
         {'enable_angle_crop_func': False},
         {'angle_crop_min': 135.0},
         {'angle_crop_max': 225.0}
       ]
-    )
-  ])
+  )
+
+  # base_link to base_laser tf node
+  base_link_to_laser_tf_node = Node(
+    package='tf2_ros',
+    executable='static_transform_publisher',
+    name='base_link_to_base_laser_ld06',
+    arguments=['0','0','0.18','0','0','0','base_link','base_laser']
+  )
+
+
+  # Define LaunchDescription variable
+  ld = LaunchDescription()
+
+  ld.add_action(ldlidar_node)
+  ld.add_action(base_link_to_laser_tf_node)
+
+  return ld
 ```
 
 ## step 2: build
@@ -252,13 +293,23 @@ $ colcon build
 ### step3.2: start LiDAR node
 
 - The product is LDROBOT LiDAR LD06
-
+  - start ld06 lidar node:
   ``` bash
   $ ros2 launch ldlidar_stl_ros2 ld06.launch.py
   ```
+  - start ld06 lidar node and show on the Rviz2:
+  ``` bash
+  $ ros2 launch ldlidar_stl_ros2 viewer_ld06.launch.py
+  ```
+
 - The product is LDROBOT LiDAR LD19
+  - start ld19 lidar node:
   ``` bash
   $ ros2 launch ldlidar_stl_ros2 ld19.launch.py
+  ```
+  - start ld19 lidar node and show on the Rviz2:
+  ``` bash
+  $ ros2 launch ldlidar_stl_ros2 viewer_ld19.launch.py
   ```
 
 ## step 4: test
@@ -272,5 +323,5 @@ $ rviz2
 
 | Product:          | Fixed Frame: | Topic:        |
 | ------------------ | ------------ | ------------- |
-| LDROBOT LiDAR LD06 | lidar_frame  | /LiDAR/LD06   |
-| LDROBOT LiDAR LD19 | lidar_frame  | /LiDAR/LD19   |
+| LDROBOT LiDAR LD06 | base_laser  | /scan   |
+| LDROBOT LiDAR LD19 | base_laser  | /scan   |

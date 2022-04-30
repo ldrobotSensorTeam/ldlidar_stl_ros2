@@ -37,16 +37,14 @@ add_executable(${PROJECT_NAME}_node  ${MAIN_SRC})
 ament_target_dependencies(${PROJECT_NAME}_node rclcpp sensor_msgs)
 target_link_libraries(${PROJECT_NAME}_node pthread)
 
-install(TARGETS
- ${PROJECT_NAME}_node
+# Install
+install(TARGETS ${PROJECT_NAME}_node
  DESTINATION lib/${PROJECT_NAME}
 )
 
-# Install launch files.
-install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}/
+install(DIRECTORY launch rviz2
+ DESTINATION share/${PROJECT_NAME}/
 )
 
-ament_package()
 
+ament_package()
