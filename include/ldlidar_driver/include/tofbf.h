@@ -1,6 +1,6 @@
 /**
  * @file tofbf.h
- * @author LDRobot (marketing1@ldrobot.com)
+ * @author LDRobot (support@ldrobot.com)
  * @brief  LiDAR near-range filtering algorithm
  *         This code is only applicable to LDROBOT LiDAR LD06 products 
  * sold by Shenzhen LDROBOT Co., LTD
@@ -22,11 +22,13 @@
 #ifndef __TOFBF_H_
 #define __TOFBF_H_
 
-#include <stdint.h>
+#include <math.h>
 
-#include <vector>
+#include <algorithm>
 
-#include "lipkg.h"
+#include "pointdata.h"
+
+namespace ldlidar {
 
 class Tofbf {
  private:
@@ -44,6 +46,8 @@ class Tofbf {
   std::vector<PointData> NearFilter(const std::vector<PointData> &tmp) const;
   ~Tofbf();
 };
+
+} // namespace ldlidar 
 
 #endif  //__TOFBF_H_
 

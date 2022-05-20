@@ -3,8 +3,7 @@
 #Date: 2022-02
 floder_name=$1
 null_name=" "
-if [ ${floder_name} == ${null_name} ]
-then
+if [ ${floder_name} == ${null_name} ];then
     echo "please input \"./ws_deploy.sh floder_name\""
 else
     floder_name="${floder_name}_`date +%Y%m%d-%H-%M`"
@@ -13,6 +12,8 @@ else
     cp ./*.txt ./${floder_name}
     cp ./*.xml ./${floder_name}
     cp ./LICENSE ./${floder_name}
+    cp ./include     ./${floder_name} -a
+    cp ./scripts     ./${floder_name} -a
     cp ./src     ./${floder_name} -a
     cp ./lanuch ./${floder_name} -a
     cp ./rviz2  ./${floder_name} -a

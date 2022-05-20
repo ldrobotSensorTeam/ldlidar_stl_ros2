@@ -1,6 +1,6 @@
 /**
  * @file cmd_interface_linux.h
- * @author LDRobot (marketing1@ldrobot.com)
+ * @author LDRobot (support@ldrobot.com)
  * @brief  linux serial port App
  * @version 0.1
  * @date 2021-10-28
@@ -21,8 +21,15 @@
 #define __LINUX_SERIAL_PORT_H__
 
 #include <inttypes.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <memory.h>
 #include <string.h>
+#include <sys/file.h>
+#include <termios.h>
+#include <unistd.h>
 
+#include <iostream>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -30,6 +37,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+namespace ldlidar {
 
 class CmdInterfaceLinux {
  public:
@@ -58,6 +67,8 @@ class CmdInterfaceLinux {
   std::function<void(const char *, size_t length)> read_callback_;
   static void RxThreadProc(void *param);
 };
+
+} // namespace ldlidar
 
 #endif  //__LINUX_SERIAL_PORT_H__
 

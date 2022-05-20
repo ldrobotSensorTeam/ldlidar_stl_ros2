@@ -1,6 +1,6 @@
 /**
  * @file pointdata.h
- * @author LDRobot (marketing1@ldrobot.com)
+ * @author LDRobot (support@ldrobot.com)
  * @brief  lidar point data structure
  *         This code is only applicable to LDROBOT products
  * sold by Shenzhen LDROBOT Co., LTD
@@ -25,6 +25,11 @@
 
 #include <iostream>
 #include <vector>
+
+namespace ldlidar {
+
+#define ANGLE_TO_RADIAN(angle) ((angle)*3141.59 / 180000)
+#define RADIAN_TO_ANGLED(angle) ((angle)*180000 / 3141.59)
 
 struct PointData {
   // Polar coordinate representation
@@ -52,8 +57,7 @@ struct PointData {
 
 typedef std::vector<PointData> Points2D;
 
-#define ANGLE_TO_RADIAN(angle) ((angle)*3141.59 / 180000)
-#define RADIAN_TO_ANGLED(angle) ((angle)*180000 / 3141.59)
+} // namespace ldlidar
 
 #endif  // _POINT_DATA_H_
 
