@@ -34,10 +34,10 @@ endif()
 # Bin and Install
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/ldlidar_driver/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/include
 )
 
-file(GLOB  DRIVER_SRC ${CMAKE_CURRENT_SOURCE_DIR}/include/ldlidar_driver/*.cpp)
+file(GLOB  DRIVER_SRC ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/*.cpp)
 add_executable(${PROJECT_NAME}_node  ${CMAKE_CURRENT_SOURCE_DIR}/src/demo.cpp ${DRIVER_SRC})
 ament_target_dependencies(${PROJECT_NAME}_node rclcpp sensor_msgs)
 target_link_libraries(${PROJECT_NAME}_node pthread)

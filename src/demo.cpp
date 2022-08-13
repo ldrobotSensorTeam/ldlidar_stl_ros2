@@ -63,24 +63,29 @@ int main(int argc, char **argv) {
   ldlidar::LiPkg *lidar_pkg = new ldlidar::LiPkg();
   ldlidar::CmdInterfaceLinux *cmd_port = new ldlidar::CmdInterfaceLinux();
 
-  RCLCPP_INFO_STREAM(node->get_logger(), " [ldrobot] SDK Pack Version is " << lidar_pkg->GetSdkPackVersionNum());
-  RCLCPP_INFO(node->get_logger(), " [ldrobot] <product_name>: %s ,<topic_name>: %s ,<port_name>: %s ,<frame_id>: %s", 
-              product_name.c_str(), topic_name.c_str(), port_name.c_str(), setting.frame_id.c_str());
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] SDK Pack Version is:%s", lidar_pkg->GetSdkPackVersionNum().c_str());
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] ROS2 param input:");
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] <product_name>: %s", product_name.c_str());
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] <topic_name>: %s", topic_name.c_str());
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] <port_name>: %s", port_name.c_str());
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] <frame_id>: %s", setting.frame_id.c_str());
 
-  RCLCPP_INFO(node->get_logger(), "[ldrobot] <laser_scan_dir>: %s,<enable_angle_crop_func>: %s,<angle_crop_min>: %f,<angle_crop_max>: %f",
-   (setting.laser_scan_dir?"Counterclockwise":"Clockwise"), (setting.enable_angle_crop_func?"true":"false"), setting.angle_crop_min, setting.angle_crop_max);
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] <laser_scan_dir>: %s", (setting.laser_scan_dir?"Counterclockwise":"Clockwise"));
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] <enable_angle_crop_func>: %s", (setting.enable_angle_crop_func?"true":"false"));
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] <angle_crop_min>: %f", setting.angle_crop_min);
+  RCLCPP_INFO(node->get_logger(), "[ldrobot] <angle_crop_max>: %f", setting.angle_crop_max);
 
   if (port_name.empty()) {
-    RCLCPP_ERROR(node->get_logger(), " [ldrobot] input <port_name> param is null");
+    RCLCPP_ERROR(node->get_logger(), "[ldrobot] input <port_name> param is null");
     exit(EXIT_FAILURE);
   }
 
   cmd_port->SetReadCallback(std::bind(&ldlidar::LiPkg::CommReadCallback, lidar_pkg, std::placeholders::_1, std::placeholders::_2));
 
   if (cmd_port->Open(port_name)) {
-    RCLCPP_INFO(node->get_logger(), " [ldrobot] open %s device %s success!", product_name.c_str(), port_name.c_str());
+    RCLCPP_INFO(node->get_logger(), "[ldrobot] open %s device %s success!", product_name.c_str(), port_name.c_str());
   }else {
-    RCLCPP_ERROR(node->get_logger(), " [ldrobot] open %s device %s fail!", product_name.c_str(), port_name.c_str());
+    RCLCPP_ERROR(node->get_logger(), "[ldrobot] open %s device %s fail!", product_name.c_str(), port_name.c_str());
     exit(EXIT_FAILURE);
   }
 
@@ -90,13 +95,17 @@ int main(int argc, char **argv) {
   rclcpp::WallRate r(10); //10hz
 
   auto last_time = std::chrono::steady_clock::now();
-
+  bool recv_success_flag = false;
   while (rclcpp::ok()) {
     if (lidar_pkg->IsFrameReady()) {
       lidar_pkg->ResetFrameReady();
       last_time = std::chrono::steady_clock::now();
       ldlidar::Points2D laserscandata = lidar_pkg->GetLaserScanData();
       ToLaserscanMessagePublish(laserscandata, lidar_pkg, setting, node, publisher);
+      if (!recv_success_flag) {
+        recv_success_flag = true;
+        RCLCPP_INFO(node->get_logger(), "[ldrobot] start normal, pub lidar data");
+      }
     }
 
     if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-last_time).count() > 1000) { 
@@ -215,7 +224,6 @@ void  ToLaserscanMessagePublish(ldlidar::Points2D& src, ldlidar::LiPkg* commpkg,
     }
     lidarpub->publish(output);
     end_scan_time = start_scan_time;
-    RCLCPP_INFO(node->get_logger(), "[ldrobot] pub lidar data");
   } 
 }
 
