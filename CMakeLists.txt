@@ -34,21 +34,40 @@ endif()
 # Bin and Install
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/include/core/
+  ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/include/dataprocess/
+  ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/include/filter/
+  ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/include/logger/
+  ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/include/networkcom/
+  ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/include/serialcom/
 )
 
-file(GLOB  DRIVER_SRC ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/*.cpp)
-add_executable(${PROJECT_NAME}_node  ${CMAKE_CURRENT_SOURCE_DIR}/src/demo.cpp ${DRIVER_SRC})
+file(GLOB  LDLIDAR_DRI_CORE ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/src/core/*.cpp)
+file(GLOB  LDLIDAR_DRI_DATARPC ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/src/dataprocess/*.cpp)
+file(GLOB  LDLIDAR_DRI_FILTER ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/src/filter/*.cpp)
+file(GLOB  LDLIDAR_DRI_LOGGER ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/src/logger/*.cpp)
+file(GLOB  LDLIDAR_DRI_NETWORK ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/src/networkcom/*.cpp)
+file(GLOB  LDLIDAR_DRI_SERIAL ${CMAKE_CURRENT_SOURCE_DIR}/ldlidar_driver/src/serialcom/*.cpp)
+
+add_executable(${PROJECT_NAME}_node  
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/demo.cpp 
+  ${LDLIDAR_DRI_CORE} 
+  ${LDLIDAR_DRI_DATARPC} 
+  ${LDLIDAR_DRI_FILTER} 
+  ${LDLIDAR_DRI_LOGGER} 
+  ${LDLIDAR_DRI_NETWORK} 
+  ${LDLIDAR_DRI_SERIAL}
+)
 ament_target_dependencies(${PROJECT_NAME}_node rclcpp sensor_msgs)
 target_link_libraries(${PROJECT_NAME}_node pthread)
 
 # Install
 install(TARGETS ${PROJECT_NAME}_node
- DESTINATION lib/${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY launch rviz2
- DESTINATION share/${PROJECT_NAME}/
+  DESTINATION share/${PROJECT_NAME}/
 )
 
 

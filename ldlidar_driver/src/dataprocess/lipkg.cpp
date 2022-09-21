@@ -56,12 +56,15 @@ uint8_t CalCRC8(const uint8_t *data, uint16_t data_len) {
   return crc;
 }
 
-LiPkg::LiPkg()
-    : sdk_pack_version_("v2.3.1"),
+LiPkg::LiPkg() : product_type_(LDType::NO_VERSION),
       timestamp_(0),
       speed_(0),
-      error_times_(0),
-      is_frame_ready_(false){
+      is_frame_ready_(false),
+      is_poweron_comm_normal_(false),
+      is_filter_(true),
+      lidarstatus_(LidarStatus::NORMAL),
+      measure_point_frequence_(4500),
+      get_timestamp_(nullptr){
 
 }
 
@@ -69,8 +72,24 @@ LiPkg::~LiPkg() {
 
 }
 
-std::string LiPkg::GetSdkPackVersionNum(void) const {
-  return sdk_pack_version_;
+void LiPkg::SetProductType(LDType type_number) {
+  product_type_ = type_number;
+  switch (type_number) {
+    case LDType::LD_06:
+    case LDType::LD_19:
+      measure_point_frequence_ = 4500;
+      break;
+    case LDType::STL_06P:
+    case LDType::STL_26:
+      measure_point_frequence_ = 5000;
+      break;
+    case LDType::STL_27L:
+      measure_point_frequence_ = 21600;
+      break;
+    default : 
+      measure_point_frequence_ = 4500;
+      break;
+  }
 }
 
 bool LiPkg::AnalysisOne(uint8_t byte) {
@@ -110,7 +129,6 @@ bool LiPkg::AnalysisOne(uint8_t byte) {
         if (crc == pkg_.crc8) {
           return true;
         } else {
-          error_times_++;
           return false;
         }
       }
@@ -125,16 +143,26 @@ bool LiPkg::AnalysisOne(uint8_t byte) {
 bool LiPkg::Parse(const uint8_t *data, long len) {
   for (int i = 0; i < len; i++) {
     if (AnalysisOne(data[i])) {
+      static uint64_t last_pkg_timestamp = 0;
+      is_poweron_comm_normal_ = true;
       // parse a package is success
-      float diff = (pkg_.end_angle / 100 - pkg_.start_angle / 100 + 360) % 360;
-      if (diff > (float)(pkg_.speed * POINT_PER_PACK / kPointFrequence * 1.5)) {
-        error_times_++;
-      } else {
+      double diff = (pkg_.end_angle / 100 - pkg_.start_angle / 100 + 360) % 360;
+      if (diff <= ((double)pkg_.speed * POINT_PER_PACK / measure_point_frequence_ * 1.5)) {
+        
+        if (0 == last_pkg_timestamp) {
+          last_pkg_timestamp = get_timestamp_();
+          continue;
+        }
+        uint64_t current_pack_stamp = get_timestamp_();
+        int pkg_point_number = POINT_PER_PACK;
+        double pack_stamp_point_step =  
+          static_cast<double>(current_pack_stamp - last_pkg_timestamp) / static_cast<double>(pkg_point_number - 1);
+
         speed_ = pkg_.speed; // Degrees per second
         timestamp_ = pkg_.timestamp; // In milliseconds
         uint32_t diff = ((uint32_t)pkg_.end_angle + 36000 - (uint32_t)pkg_.start_angle) % 36000;
         float step = diff / (POINT_PER_PACK - 1) / 100.0;
-        float start = (float)pkg_.start_angle / 100.0;
+        float start = (double)pkg_.start_angle / 100.0;
         PointData data;
         for (int i = 0; i < POINT_PER_PACK; i++) {
           data.distance = pkg_.point[i].distance;
@@ -143,8 +171,11 @@ bool LiPkg::Parse(const uint8_t *data, long len) {
             data.angle -= 360.0;
           }
           data.intensity = pkg_.point[i].intensity;
-          frame_tmp_.push_back(PointData(data.angle, data.distance, data.intensity));
+          data.stamp = static_cast<uint64_t>(last_pkg_timestamp + (pack_stamp_point_step * i));
+          frame_tmp_.push_back(PointData(data.angle, data.distance, data.intensity, data.stamp));
         }
+
+        last_pkg_timestamp = current_pack_stamp; //// update last pkg timestamp
       }
     }
   }
@@ -161,22 +192,54 @@ bool LiPkg::AssemblePacket() {
     // wait for enough data, need enough data to show a circle
     // enough data has been obtained
     if ((n.angle < 20.0) && (last_angle > 340.0)) {
-      if ((count * GetSpeed()) > (kPointFrequence * 1.4)) {
-        frame_tmp_.erase(frame_tmp_.begin(), frame_tmp_.begin() + count - 1);
+      if ((count * GetSpeed()) > (measure_point_frequence_ * 1.4)) {
+        if (count >= (int)frame_tmp_.size()) {
+          frame_tmp_.clear();
+        } else {
+          frame_tmp_.erase(frame_tmp_.begin(), frame_tmp_.begin() + count);
+        }
         return false;
       }
+
       data.insert(data.begin(), frame_tmp_.begin(), frame_tmp_.begin() + count);
-      Tofbf toffilter(speed_);
-      tmp = toffilter.NearFilter(data);
-      std::sort(tmp.begin(), tmp.end(), [](PointData a, PointData b) { return a.angle < b.angle; });
+
+      if (is_filter_) {
+        Tofbf tofbfLd(speed_, product_type_);
+        tmp = tofbfLd.Filter(data);
+      } else {
+        tmp = data;
+      }
+    
+      std::sort(tmp.begin(), tmp.end(), [](PointData a, PointData b) { return a.stamp < b.stamp; });
+
       if (tmp.size() > 0) {
-        SetLaserScanData(tmp);
-        SetFrameReady();
-        frame_tmp_.erase(frame_tmp_.begin(), frame_tmp_.begin() + count);
+        static bool first_frame = true;
+        if (first_frame) {
+          first_frame = false;
+        } else {
+          SetLaserScanData(tmp);
+          SetFrameReady();
+        }
+
+        if (count >= (int)frame_tmp_.size()) {
+          frame_tmp_.clear();
+        } else {
+          frame_tmp_.erase(frame_tmp_.begin(), frame_tmp_.begin() + count);
+        }
         return true;
       }
     }
     count++;
+
+    if ((count * GetSpeed()) > (measure_point_frequence_ * 2)) {
+      if (count >= (int)frame_tmp_.size()) {
+        frame_tmp_.clear();
+      } else {
+        frame_tmp_.erase(frame_tmp_.begin(), frame_tmp_.begin() + count);
+      }
+      return false;
+    }
+
     last_angle = n.angle;
   }
 
@@ -195,6 +258,10 @@ uint16_t LiPkg::GetTimestamp(void) {
   return timestamp_; 
 }
 
+int LiPkg::GetLidarMeasurePointFrequence(void) {
+  return measure_point_frequence_;
+}
+
 bool LiPkg::IsFrameReady(void) {
   std::lock_guard<std::mutex> lg(mutex_lock1_);
   return is_frame_ready_; 
@@ -210,6 +277,19 @@ void LiPkg::SetFrameReady(void) {
   is_frame_ready_ = true;
 }
 
+bool LiPkg::GetLaserScanData(Points2D& out) {
+  if (IsFrameReady()) {
+    ResetFrameReady();
+    {
+      std::lock_guard<std::mutex> lg(mutex_lock2_);
+      out = laser_scan_data_;
+    }
+    return true;
+  } else {
+    return false;
+  }
+}
+
 Points2D LiPkg::GetLaserScanData(void) {
   std::lock_guard<std::mutex> lg(mutex_lock2_);
   return laser_scan_data_;
@@ -220,8 +300,20 @@ void LiPkg::SetLaserScanData(Points2D& src) {
   laser_scan_data_ = src;
 }
 
-long LiPkg::GetErrorTimes(void) {
-  return error_times_; 
+void LiPkg::RegisterTimestampGetFunctional(std::function<uint64_t(void)> timestamp_handle) {
+  get_timestamp_ = timestamp_handle;
+}
+
+bool LiPkg::GetLidarPowerOnCommStatus(void) {
+  return is_poweron_comm_normal_;
+}
+
+void LiPkg::EnableFilter(bool is_enable) {
+  is_filter_ = is_enable;
+}
+
+LidarStatus LiPkg::GetLidarStatus(void) {
+  return lidarstatus_;
 }
 
 void LiPkg::CommReadCallback(const char *byte, size_t len) {
@@ -230,7 +322,6 @@ void LiPkg::CommReadCallback(const char *byte, size_t len) {
   }
 }
 
-}
-
+} // namespace ldlidar
 /********************* (C) COPYRIGHT SHENZHEN LDROBOT CO., LTD *******END OF
  * FILE ********/

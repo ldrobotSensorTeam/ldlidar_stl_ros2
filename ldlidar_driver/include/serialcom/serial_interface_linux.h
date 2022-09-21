@@ -26,6 +26,10 @@
 #include <memory.h>
 #include <string.h>
 #include <sys/file.h>
+#include <sys/ioctl.h>
+namespace asmtermios {
+#include <linux/termios.h>
+}
 #include <termios.h>
 #include <unistd.h>
 
@@ -40,12 +44,12 @@
 
 namespace ldlidar {
 
-class CmdInterfaceLinux {
+class SerialInterfaceLinux {
  public:
-  CmdInterfaceLinux();
-  ~CmdInterfaceLinux();
+  SerialInterfaceLinux();
+  ~SerialInterfaceLinux();
   // open serial port
-  bool Open(std::string &port_name);  
+  bool Open(std::string &port_name, uint32_t com_baudrate);  
   // close serial port
   bool Close();     
   // receive from port channel data                  
@@ -63,6 +67,7 @@ class CmdInterfaceLinux {
   std::thread *rx_thread_;
   long long rx_count_;
   int32_t com_handle_;
+  uint32_t com_baudrate_;
   std::atomic<bool> is_cmd_opened_, rx_thread_exit_flag_;
   std::function<void(const char *, size_t length)> read_callback_;
   static void RxThreadProc(void *param);

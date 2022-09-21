@@ -13,7 +13,7 @@ def generate_launch_description():
       'rviz2',
       'ldlidar.rviz'
   )
-  
+
   rviz2_node = Node(
       package='rviz2',
       executable='rviz2',
@@ -35,5 +35,5 @@ def generate_launch_description():
 
   ld.add_action(ldlidar_launch)
   ld.add_action(rviz2_node)
-  
+
   return ld

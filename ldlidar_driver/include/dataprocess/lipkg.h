@@ -22,11 +22,15 @@
 #ifndef __LIPKG_H
 #define __LIPKG_H
 
-#include <chrono>
 
-#include "pointdata.h"
+#include <chrono>
+#include <functional>
+#include <mutex>
+
+#include <string.h>
+
+#include "ldlidar_datatype.h"
 #include "tofbf.h"
-#include "cmd_interface_linux.h"
 
 namespace ldlidar {
 
@@ -54,65 +58,64 @@ typedef struct __attribute__((packed)) {
 
 class LiPkg {
  public:
-  const int kPointFrequence = 4500;
-
   LiPkg();
   ~LiPkg();
-  /**
-   * @brief get sdk pack version number
-  */
-  std::string GetSdkPackVersionNum(void) const;
-  /**
-   * @brief get Lidar spin speed (Hz)
-  */
+  
+  // set product type (belong to enum class LDType)
+  void SetProductType(LDType type_number);
+  // get Lidar spin speed (Hz)
   double GetSpeed(void); 
-  /**
-   * @brief get lidar spind speed (degree per second) origin
-  */
+  // get lidar spind speed (degree per second) origin
   uint16_t GetSpeedOrigin(void);
-  /**
-   * @brief get time stamp of the packet
-  */
+  // get time stamp of the packet
   uint16_t GetTimestamp(void);  
-  /**
-   * @brief Get lidar data frame ready flag 
-  */
-  bool IsFrameReady(void);  
-  /**
-   * @brief Lidar data frame readiness flag reset
-  */
-  void ResetFrameReady(void);
-  /**
-   * @brief the number of errors in parser process of lidar data frame
-  */
-  long GetErrorTimes(void);  
-  /**
-   * @brief comm data read callback handle
-  */
+  // get lidar measure frequence(Hz)
+  int GetLidarMeasurePointFrequence(void);
+  
   void CommReadCallback(const char *byte, size_t len);
-  /**
-   * @brief get lidar scan point cloud data
-  */
+
+  bool GetLaserScanData(Points2D& out);
+
   Points2D GetLaserScanData(void);
+
+  void RegisterTimestampGetFunctional(std::function<uint64_t(void)> timestamp_handle);
+
+  bool GetLidarPowerOnCommStatus(void);
+
+  void EnableFilter(bool is_enable);
+
+  LidarStatus GetLidarStatus(void);
+
+  // Get lidar data frame ready flag  
+  bool IsFrameReady(void);  
+  // Lidar data frame readiness flag reset
+  void ResetFrameReady(void);
   
  private:
-  std::string sdk_pack_version_;
+  LDType product_type_;
   uint16_t timestamp_;
   double speed_;
-  long error_times_;
   bool is_frame_ready_;
+  bool is_poweron_comm_normal_;
+  bool is_filter_;
+  LidarStatus lidarstatus_;
+  int measure_point_frequence_;
+  std::function<uint64_t(void)> get_timestamp_;
 
   LiDARFrameTypeDef pkg_;
   Points2D frame_tmp_;
   Points2D laser_scan_data_;
   std::mutex  mutex_lock1_;
   std::mutex  mutex_lock2_;
+  
 
+   // parse single packet
   bool AnalysisOne(uint8_t byte);
   bool Parse(const uint8_t* data, long len);  
+  // combine stantard data into data frames and calibrate
   bool AssemblePacket();  
-  void SetLaserScanData(Points2D& src);
   void SetFrameReady(void);
+  void SetLaserScanData(Points2D& src);
 };
 
 } // namespace ldlidar

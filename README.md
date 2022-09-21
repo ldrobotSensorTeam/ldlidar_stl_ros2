@@ -28,7 +28,7 @@ cd ~/ldlidar_ros2_ws
 
 sudo chmod 777 /dev/ttyUSB0
 ```
-- 第三步，修改`launch/`目录下雷达产品型号对应的lanuch文件中的`port_name`值，以ld06.launch.py为例，如下所示.
+- 第三步，修改`launch/`目录下雷达产品型号对应的lanuch文件中的`port_name`值，以`ld06.launch.py` 和 `/dev/ttyUSB0`为例，如下所示.
 
 ```py
 #!/usr/bin/env python3
@@ -36,17 +36,6 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 '''
-parameters=[
-        {'product_name': 'LDLiDAR_LD06'},
-        {'topic_name': 'scan'},
-        {'port_name': '/dev/ttyUSB0'},
-        {'frame_id': 'base_laser'},
-        {'laser_scan_dir': True},
-        {'enable_angle_crop_func': False},
-        {'angle_crop_min': 135.0},
-        {'angle_crop_max': 225.0}
-      ]
----
 Parameter Description:
 ---
 - Set laser scan directon: 
@@ -75,8 +64,9 @@ def generate_launch_description():
       parameters=[
         {'product_name': 'LDLiDAR_LD06'},
         {'topic_name': 'scan'},
-        {'port_name': '/dev/ttyUSB0'},
         {'frame_id': 'base_laser'},
+        {'port_name': '/dev/ttyUSB0'},
+        {'port_baudrate': 230400},
         {'laser_scan_dir': True},
         {'enable_angle_crop_func': False},
         {'angle_crop_min': 135.0},
@@ -123,7 +113,7 @@ colcon build
 - 为了重新打开终端后，永久不用执行上述添加环境变量的命令，可以进行如下操作.
 
   ```bash
-  echo "source ~/ldlidar_ros2_ws/install/setup.bash" >> ~/.bashrc
+  echo source ~/ldlidar_ros2_ws/install/setup.bash >> ~/.bashrc
 
   source ~/.bashrc
   ```
@@ -157,12 +147,6 @@ colcon build
 rviz2
 ```
 
-| 产品型号:          | Fixed Frame: | Topic:        |
-| ------------------ | ------------ | ------------- |
-| LDROBOT LiDAR LD06 | base_laser  | /scan |
-| LDROBOT LiDAR LD19 | base_laser  | /scan |
-
-
 # Instructions
 
 > This SDK is only applicable to the LiDAR products sold by Shenzhen LDROBOT Co., LTD. The product models are :
@@ -192,7 +176,7 @@ cd ~/ldlidar_ros2_ws
 
 sudo chmod 777 /dev/ttyUSB0
 ```
-- Modify the `port_name` value in the Lanuch file corresponding to the radar product model under `launch/`, using `ld06.launch.py` as an example, as shown below.
+- Modify the `port_name` value in the Lanuch file corresponding to the radar product model under `launch/`, using `ld06.launch.py` and `/dev/ttyUSB0` as an example, as shown below.
 
 ```py
 #!/usr/bin/env python3
@@ -200,17 +184,6 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 '''
-parameters=[
-        {'product_name': 'LDLiDAR_LD06'},
-        {'topic_name': 'scan'},
-        {'port_name': '/dev/ttyUSB0'},
-        {'frame_id': 'base_laser'},
-        {'laser_scan_dir': True},
-        {'enable_angle_crop_func': False},
-        {'angle_crop_min': 135.0},
-        {'angle_crop_max': 225.0}
-      ]
----
 Parameter Description:
 ---
 - Set laser scan directon: 
@@ -239,8 +212,9 @@ def generate_launch_description():
       parameters=[
         {'product_name': 'LDLiDAR_LD06'},
         {'topic_name': 'scan'},
-        {'port_name': '/dev/ttyUSB0'},
         {'frame_id': 'base_laser'},
+        {'port_name': '/dev/ttyUSB0'},
+        {'port_baudrate': 230400},
         {'laser_scan_dir': True},
         {'enable_angle_crop_func': False},
         {'angle_crop_min': 135.0},
@@ -290,7 +264,7 @@ colcon build
 - In order to never need to execute the above command to add environment variables after reopening the terminal, you can do the following.
 
   ```bash
-  echo "source ~/ldlidar_ros2_ws/install/setup.bash" >> ~/.bashrc
+  echo source ~/ldlidar_ros2_ws/install/setup.bash >> ~/.bashrc
   
   source ~/.bashrc
   ```
@@ -324,8 +298,3 @@ colcon build
 ```bash
 rviz2
 ```
-
-| Product:          | Fixed Frame: | Topic:        |
-| ------------------ | ------------ | ------------- |
-| LDROBOT LiDAR LD06 | base_laser  | /scan   |
-| LDROBOT LiDAR LD19 | base_laser  | /scan   |

@@ -17,33 +17,40 @@
  * limitations under the License.
  */
 
-#include "cmd_interface_linux.h"
+#include "serial_interface_linux.h"
+#include "log_module.h"
 
-namespace ldlidar {
 
 #define MAX_ACK_BUF_LEN 4096
 
-CmdInterfaceLinux::CmdInterfaceLinux()
+namespace ldlidar {
+
+SerialInterfaceLinux::SerialInterfaceLinux()
     : rx_thread_(nullptr), rx_count_(0), read_callback_(nullptr) {
   com_handle_ = -1;
+  com_baudrate_ = 0;
 }
 
-CmdInterfaceLinux::~CmdInterfaceLinux() { Close(); }
+SerialInterfaceLinux::~SerialInterfaceLinux() { Close(); }
 
-bool CmdInterfaceLinux::Open(std::string &port_name) {
+bool SerialInterfaceLinux::Open(std::string &port_name, uint32_t com_baudrate) {
   int flags = (O_RDWR | O_NOCTTY | O_NONBLOCK);
 
   com_handle_ = open(port_name.c_str(), flags);
   if (-1 == com_handle_) {
-    std::cout << "[ldrobot] CmdInterfaceLinux::Open open error!" << std::endl;
+    LD_LOG_ERROR("Open open error,%s", strerror(errno));
     return false;
   }
 
-  // get port options
-  struct termios options;
-  if (-1 == tcgetattr(com_handle_, &options)) {
-    Close();
-    std::cout << "[ldrobot] CmdInterfaceLinux::Open tcgetattr error!" << std::endl;
+  com_baudrate_ = com_baudrate;
+
+  struct asmtermios::termios2 options;
+  if (ioctl(com_handle_, _IOC(_IOC_READ, 'T', 0x2A, sizeof(struct asmtermios::termios2)), &options)) {
+    LD_LOG_ERROR("TCGETS2 first error,%s", strerror(errno));
+    if (com_handle_ != -1) {
+      close(com_handle_);
+      com_handle_ = -1;
+    }
     return false;
   }
 
@@ -52,20 +59,35 @@ bool CmdInterfaceLinux::Open(std::string &port_name) {
   options.c_lflag &= (tcflag_t) ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL |
                                   ISIG | IEXTEN);  //|ECHOPRT
   options.c_oflag &= (tcflag_t) ~(OPOST);
-  options.c_iflag &=
-      (tcflag_t) ~(IXON | IXOFF | INLCR | IGNCR | ICRNL | IGNBRK);
+  options.c_iflag &= (tcflag_t) ~(IXON | IXOFF | INLCR | IGNCR | ICRNL | IGNBRK);
+
+  options.c_cflag &= ~CBAUD;
+  options.c_cflag |= BOTHER;
+  options.c_ispeed = this->com_baudrate_;
+  options.c_ospeed = this->com_baudrate_;
 
   options.c_cc[VMIN] = 0;
   options.c_cc[VTIME] = 0;
 
-  cfsetispeed(&options, B230400);
-  cfsetospeed(&options, B230400);
-
-  if (tcsetattr(com_handle_, TCSANOW, &options) < 0) {
-    std::cout << "[ldrobot] CmdInterfaceLinux::Open tcsetattr error!" << std::endl;
-    Close();
+  if (ioctl(com_handle_, _IOC(_IOC_WRITE, 'T', 0x2B, sizeof(struct asmtermios::termios2)), &options)) {
+    LD_LOG_ERROR("TCSETS2 error,%s", strerror(errno));
+    if (com_handle_ != -1) {
+      close(com_handle_);
+      com_handle_ = -1;
+    }
     return false;
   }
+
+  if (ioctl(com_handle_, _IOC(_IOC_READ, 'T', 0x2A, sizeof(struct asmtermios::termios2)), &options)) {
+    LD_LOG_ERROR("TCGETS2 second error,%s", strerror(errno));
+    if (com_handle_ != -1) {
+      close(com_handle_);
+      com_handle_ = -1;
+    }
+    return false;
+  }
+
+  LDS_LOG_INFO("Actual BaudRate reported:%d", options.c_ospeed);
 
   tcflush(com_handle_, TCIFLUSH);
 
@@ -76,7 +98,7 @@ bool CmdInterfaceLinux::Open(std::string &port_name) {
   return true;
 }
 
-bool CmdInterfaceLinux::Close() {
+bool SerialInterfaceLinux::Close() {
   if (is_cmd_opened_ == false) {
     return true;
   }
@@ -91,7 +113,7 @@ bool CmdInterfaceLinux::Close() {
   if ((rx_thread_ != nullptr) && rx_thread_->joinable()) {
     rx_thread_->join();
     delete rx_thread_;
-    rx_thread_ = NULL;
+    rx_thread_ = nullptr;
   }
 
   is_cmd_opened_ = false;
@@ -99,7 +121,7 @@ bool CmdInterfaceLinux::Close() {
   return true;
 }
 
-bool CmdInterfaceLinux::ReadFromIO(uint8_t *rx_buf, uint32_t rx_buf_len,
+bool SerialInterfaceLinux::ReadFromIO(uint8_t *rx_buf, uint32_t rx_buf_len,
                                    uint32_t *rx_len) {
   static timespec timeout = {0, (long)(100 * 1e6)};
   int32_t len = -1;
@@ -128,7 +150,7 @@ bool CmdInterfaceLinux::ReadFromIO(uint8_t *rx_buf, uint32_t rx_buf_len,
   return len == -1 ? false : true;
 }
 
-bool CmdInterfaceLinux::WriteToIo(const uint8_t *tx_buf, uint32_t tx_buf_len,
+bool SerialInterfaceLinux::WriteToIo(const uint8_t *tx_buf, uint32_t tx_buf_len,
                                   uint32_t *tx_len) {
   int32_t len = -1;
 
@@ -141,8 +163,8 @@ bool CmdInterfaceLinux::WriteToIo(const uint8_t *tx_buf, uint32_t tx_buf_len,
   return len == -1 ? false : true;
 }
 
-void CmdInterfaceLinux::RxThreadProc(void *param) {
-  CmdInterfaceLinux *cmd_if = (CmdInterfaceLinux *)param;
+void SerialInterfaceLinux::RxThreadProc(void *param) {
+  SerialInterfaceLinux *cmd_if = (SerialInterfaceLinux *)param;
   char *rx_buf = new char[MAX_ACK_BUF_LEN + 1];
   while (!cmd_if->rx_thread_exit_flag_.load()) {
     uint32_t readed = 0;
@@ -158,7 +180,7 @@ void CmdInterfaceLinux::RxThreadProc(void *param) {
   delete[] rx_buf;
 }
 
-}
+} // namespace ldlidar
 
 /********************* (C) COPYRIGHT SHENZHEN LDROBOT CO., LTD *******END OF
  * FILE ********/
