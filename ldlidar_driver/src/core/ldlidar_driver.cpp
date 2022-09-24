@@ -24,14 +24,14 @@ namespace ldlidar {
 
 bool LDLidarDriver::is_ok_ = false;
 
-LDLidarDriver::LDLidarDriver() : sdk_version_number_("v3.0.0"),
+LDLidarDriver::LDLidarDriver() : sdk_version_number_("v3.0.1"),
   is_start_flag_(false),
   register_get_timestamp_handle_(nullptr),
   comm_pkg_(new LiPkg()),
   comm_serial_(new SerialInterfaceLinux()),
   comm_tcp_network_(new TCPSocketInterfaceLinux()),
   comm_udp_network_(new UDPSocketInterfaceLinux()) {
-  
+  last_pubdata_times_ = std::chrono::steady_clock::now();
 }
 
 LDLidarDriver::~LDLidarDriver() {
@@ -226,6 +226,7 @@ bool LDLidarDriver::WaitLidarCommConnect(int64_t timeout) {
   }
 
   if (is_recvflag) {
+    last_pubdata_times_ = std::chrono::steady_clock::now();
     return true;
   } else {
     return false;
@@ -237,22 +238,20 @@ LidarStatus LDLidarDriver::GetLaserScanData(Points2D& dst, int64_t timeout) {
     return LidarStatus::STOP;
   }
 
-  static std::chrono::_V2::steady_clock::time_point last_pubdata_times = std::chrono::steady_clock::now();
-
   LidarStatus status = comm_pkg_->GetLidarStatus();
   if (LidarStatus::NORMAL == status) {
     if (comm_pkg_->GetLaserScanData(dst)) {
-      last_pubdata_times = std::chrono::steady_clock::now(); 
+      last_pubdata_times_ = std::chrono::steady_clock::now(); 
       return LidarStatus::NORMAL;
     }
     
-    if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_pubdata_times).count() > timeout) {
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_pubdata_times_).count() > timeout) {
       return LidarStatus::DATA_TIME_OUT;
     } else {
       return LidarStatus::DATA_WAIT;
     }
   } else {
-    last_pubdata_times = std::chrono::steady_clock::now(); 
+    last_pubdata_times_ = std::chrono::steady_clock::now(); 
     return status;
   }
 }
@@ -262,25 +261,23 @@ LidarStatus LDLidarDriver::GetLaserScanData(LaserScan& dst, int64_t timeout) {
     return LidarStatus::STOP;
   }
 
-  static std::chrono::_V2::steady_clock::time_point last_pubdata_times = std::chrono::steady_clock::now();
-
   LidarStatus status = comm_pkg_->GetLidarStatus();
   if (LidarStatus::NORMAL == status) {
     Points2D recvpcd;
     if (comm_pkg_->GetLaserScanData(recvpcd)) {
-      last_pubdata_times = std::chrono::steady_clock::now(); 
+      last_pubdata_times_ = std::chrono::steady_clock::now(); 
       dst.stamp = recvpcd.front().stamp;
       dst.points = recvpcd;
       return LidarStatus::NORMAL;
     }
     
-    if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_pubdata_times).count() > timeout) {
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_pubdata_times_).count() > timeout) {
       return LidarStatus::DATA_TIME_OUT;
     } else {
       return LidarStatus::DATA_WAIT;
     }
   } else {
-    last_pubdata_times = std::chrono::steady_clock::now(); 
+    last_pubdata_times_ = std::chrono::steady_clock::now(); 
     return status;
   }
 }

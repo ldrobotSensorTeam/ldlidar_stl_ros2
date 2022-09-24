@@ -155,6 +155,7 @@ private:
   SerialInterfaceLinux* comm_serial_;
   TCPSocketInterfaceLinux* comm_tcp_network_;
   UDPSocketInterfaceLinux* comm_udp_network_;
+  std::chrono::_V2::steady_clock::time_point last_pubdata_times_;
 };
 
 } // namespace ldlidar
