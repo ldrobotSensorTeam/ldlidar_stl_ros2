@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  if (ldlidarnode->WaitLidarCommConnect(500)) {
+  if (ldlidarnode->WaitLidarCommConnect(3000)) {
     RCLCPP_INFO(node->get_logger(), "ldlidar communication is normal.");
   } else {
     RCLCPP_ERROR(node->get_logger(), "ldlidar communication is abnormal.");
@@ -112,14 +112,10 @@ int main(int argc, char **argv) {
 
   ldlidar::Points2D laser_scan_points;
   double lidar_spin_freq;
-  bool is_get = false;
+  RCLCPP_INFO(node->get_logger(), "Publish topic message:ldlidar scan data.");
   while (rclcpp::ok()) {
-    switch (ldlidarnode->GetLaserScanData(laser_scan_points, 1000)){
+    switch (ldlidarnode->GetLaserScanData(laser_scan_points, 1500)){
       case ldlidar::LidarStatus::NORMAL: 
-        if (!is_get) {
-          is_get = true;
-          RCLCPP_INFO(node->get_logger(), "get ldlidar normal data and publish topic message.");
-        }
         ldlidarnode->GetLidarSpinFreq(lidar_spin_freq);
         ToLaserscanMessagePublish(laser_scan_points, lidar_spin_freq, setting, node, publisher);
         break;

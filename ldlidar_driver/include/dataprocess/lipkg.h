@@ -76,8 +76,6 @@ class LiPkg {
 
   bool GetLaserScanData(Points2D& out);
 
-  Points2D GetLaserScanData(void);
-
   void RegisterTimestampGetFunctional(std::function<uint64_t(void)> timestamp_handle);
 
   bool GetLidarPowerOnCommStatus(void);
@@ -86,11 +84,15 @@ class LiPkg {
 
   LidarStatus GetLidarStatus(void);
 
-  // Get lidar data frame ready flag  
-  bool IsFrameReady(void);  
-  // Lidar data frame readiness flag reset
-  void ResetFrameReady(void);
-  
+  void ClearDataProcessStatus(void) {
+    is_frame_ready_ = false;
+    is_poweron_comm_normal_ = false;
+    lidarstatus_ = LidarStatus::NORMAL;
+    last_pkg_timestamp_ = 0;
+    first_frame_ = true;
+  }
+
+
  private:
   LDType product_type_;
   uint16_t timestamp_;
@@ -101,6 +103,8 @@ class LiPkg {
   LidarStatus lidarstatus_;
   int measure_point_frequence_;
   std::function<uint64_t(void)> get_timestamp_;
+  uint64_t last_pkg_timestamp_;
+  bool first_frame_;
 
   LiDARFrameTypeDef pkg_;
   Points2D frame_tmp_;
@@ -116,6 +120,11 @@ class LiPkg {
   bool AssemblePacket();  
   void SetFrameReady(void);
   void SetLaserScanData(Points2D& src);
+
+  // Get lidar data frame ready flag  
+  bool IsFrameReady(void);  
+  // Lidar data frame readiness flag reset
+  void ResetFrameReady(void);
 };
 
 } // namespace ldlidar

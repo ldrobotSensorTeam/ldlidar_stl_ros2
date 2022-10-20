@@ -56,15 +56,18 @@ uint8_t CalCRC8(const uint8_t *data, uint16_t data_len) {
   return crc;
 }
 
-LiPkg::LiPkg() : product_type_(LDType::NO_VERSION),
-      timestamp_(0),
-      speed_(0),
-      is_frame_ready_(false),
-      is_poweron_comm_normal_(false),
-      is_filter_(true),
-      lidarstatus_(LidarStatus::NORMAL),
-      measure_point_frequence_(4500),
-      get_timestamp_(nullptr){
+LiPkg::LiPkg() 
+  : product_type_(LDType::NO_VERSION),
+    timestamp_(0),
+    speed_(0),
+    is_frame_ready_(false),
+    is_poweron_comm_normal_(false),
+    is_filter_(true),
+    lidarstatus_(LidarStatus::NORMAL),
+    measure_point_frequence_(4500),
+    get_timestamp_(nullptr),
+    last_pkg_timestamp_(0),
+    first_frame_(true) {
 
 }
 
@@ -143,20 +146,19 @@ bool LiPkg::AnalysisOne(uint8_t byte) {
 bool LiPkg::Parse(const uint8_t *data, long len) {
   for (int i = 0; i < len; i++) {
     if (AnalysisOne(data[i])) {
-      static uint64_t last_pkg_timestamp = 0;
       is_poweron_comm_normal_ = true;
       // parse a package is success
       double diff = (pkg_.end_angle / 100 - pkg_.start_angle / 100 + 360) % 360;
       if (diff <= ((double)pkg_.speed * POINT_PER_PACK / measure_point_frequence_ * 1.5)) {
         
-        if (0 == last_pkg_timestamp) {
-          last_pkg_timestamp = get_timestamp_();
+        if (0 == last_pkg_timestamp_) {
+          last_pkg_timestamp_ = get_timestamp_();
           continue;
         }
         uint64_t current_pack_stamp = get_timestamp_();
         int pkg_point_number = POINT_PER_PACK;
         double pack_stamp_point_step =  
-          static_cast<double>(current_pack_stamp - last_pkg_timestamp) / static_cast<double>(pkg_point_number - 1);
+          static_cast<double>(current_pack_stamp - last_pkg_timestamp_) / static_cast<double>(pkg_point_number - 1);
 
         speed_ = pkg_.speed; // Degrees per second
         timestamp_ = pkg_.timestamp; // In milliseconds
@@ -171,11 +173,11 @@ bool LiPkg::Parse(const uint8_t *data, long len) {
             data.angle -= 360.0;
           }
           data.intensity = pkg_.point[i].intensity;
-          data.stamp = static_cast<uint64_t>(last_pkg_timestamp + (pack_stamp_point_step * i));
+          data.stamp = static_cast<uint64_t>(last_pkg_timestamp_ + (pack_stamp_point_step * i));
           frame_tmp_.push_back(PointData(data.angle, data.distance, data.intensity, data.stamp));
         }
 
-        last_pkg_timestamp = current_pack_stamp; //// update last pkg timestamp
+        last_pkg_timestamp_ = current_pack_stamp; //// update last pkg timestamp
       }
     }
   }
@@ -213,9 +215,8 @@ bool LiPkg::AssemblePacket() {
       std::sort(tmp.begin(), tmp.end(), [](PointData a, PointData b) { return a.stamp < b.stamp; });
 
       if (tmp.size() > 0) {
-        static bool first_frame = true;
-        if (first_frame) {
-          first_frame = false;
+        if (first_frame_) {
+          first_frame_ = false;
         } else {
           SetLaserScanData(tmp);
           SetFrameReady();
@@ -290,11 +291,6 @@ bool LiPkg::GetLaserScanData(Points2D& out) {
   }
 }
 
-Points2D LiPkg::GetLaserScanData(void) {
-  std::lock_guard<std::mutex> lg(mutex_lock2_);
-  return laser_scan_data_;
-}
-
 void LiPkg::SetLaserScanData(Points2D& src) {
   std::lock_guard<std::mutex> lg(mutex_lock2_);
   laser_scan_data_ = src;
@@ -305,7 +301,12 @@ void LiPkg::RegisterTimestampGetFunctional(std::function<uint64_t(void)> timesta
 }
 
 bool LiPkg::GetLidarPowerOnCommStatus(void) {
-  return is_poweron_comm_normal_;
+  if (is_poweron_comm_normal_) {
+    is_poweron_comm_normal_ = false;
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void LiPkg::EnableFilter(bool is_enable) {

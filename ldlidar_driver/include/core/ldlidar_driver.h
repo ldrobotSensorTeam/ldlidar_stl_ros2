@@ -41,7 +41,7 @@ typedef enum CommunicationMode {
 }CommunicationModeTypeDef;
 
 class LDLidarDriver {
-public:
+ public:
   LDLidarDriver();
   ~LDLidarDriver();
   
@@ -89,10 +89,10 @@ public:
    * @brief Whether the connection of the communication channel is normal after the lidar is powered on
    * @param[in]
    * *@param timeout:  Wait timeout, in milliseconds
-   * @retval if times >= 1000, return false, communication connection is fail;
-   *   if "times < 1000", return ture, communication connection is successful.
+   * @retval if times >= timeout, return false, communication connection is fail;
+   *   if "times < timeout", return ture, communication connection is successful.
   */
-  bool WaitLidarCommConnect(int64_t timeout = 1000);
+  bool WaitLidarCommConnect(int64_t timeout);
 
   /**
    * @brief get lidar laser scan point cloud data
@@ -146,7 +146,7 @@ public:
 
   static void SetIsOkStatus(bool status) { is_ok_ = status;}
   
-private:
+ private:
   std::string sdk_version_number_;
   static bool is_ok_;
   bool is_start_flag_;

@@ -41,6 +41,11 @@ enum class FilterType{
 };
 
 class Tofbf {
+ public:
+  Tofbf(int speed, LDType type);
+  ~Tofbf();
+  std::vector<PointData> Filter(const std::vector<PointData> &tmp) const;
+
  private:
   FilterType filter_type_;
   // Low intensity threshold
@@ -55,12 +60,6 @@ class Tofbf {
   Tofbf &operator=(const Tofbf &) = delete;
   std::vector<PointData> NearFilter(const std::vector<PointData> &tmp) const;
   std::vector<PointData> NoiseFilter(const std::vector<PointData> &tmp) const;
-
- public:
-  Tofbf(int speed, LDType type);
-  std::vector<PointData> Filter(const std::vector<PointData> &tmp) const;
-
-  ~Tofbf();
 };
 
 } // namespace ldlidar

@@ -24,14 +24,15 @@ namespace ldlidar {
 
 bool LDLidarDriver::is_ok_ = false;
 
-LDLidarDriver::LDLidarDriver() : sdk_version_number_("v3.0.1"),
-  is_start_flag_(false),
-  register_get_timestamp_handle_(nullptr),
-  comm_pkg_(new LiPkg()),
-  comm_serial_(new SerialInterfaceLinux()),
-  comm_tcp_network_(new TCPSocketInterfaceLinux()),
-  comm_udp_network_(new UDPSocketInterfaceLinux()) {
-  last_pubdata_times_ = std::chrono::steady_clock::now();
+LDLidarDriver::LDLidarDriver() 
+  : sdk_version_number_("v3.0.2"),
+    is_start_flag_(false),
+    register_get_timestamp_handle_(nullptr),
+    comm_pkg_(new LiPkg()),
+    comm_serial_(new SerialInterfaceLinux()),
+    comm_tcp_network_(new TCPSocketInterfaceLinux()),
+    comm_udp_network_(new UDPSocketInterfaceLinux()) {
+    last_pubdata_times_ = std::chrono::steady_clock::now();
 }
 
 LDLidarDriver::~LDLidarDriver() {
@@ -78,6 +79,8 @@ bool LDLidarDriver::Start(LDType product_name,
     LD_LOG_ERROR("get timestamp fuctional is not register.","");
     return false;
   }
+
+  comm_pkg_->ClearDataProcessStatus();
   comm_pkg_->RegisterTimestampGetFunctional(register_get_timestamp_handle_);
   comm_pkg_->SetProductType(product_name);
 
@@ -128,6 +131,7 @@ bool LDLidarDriver::Start(LDType product_name,
     return false;
   }
 
+  comm_pkg_->ClearDataProcessStatus();
   comm_pkg_->RegisterTimestampGetFunctional(register_get_timestamp_handle_);
   comm_pkg_->SetProductType(product_name);
 
@@ -217,13 +221,13 @@ bool LDLidarDriver::WaitLidarCommConnect(int64_t timeout) {
   auto last_time = std::chrono::steady_clock::now();
 
   bool is_recvflag = false;
-  while (!is_recvflag && \
-  (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_time).count() < timeout)) {
+  do {
     if (comm_pkg_->GetLidarPowerOnCommStatus()) {
       is_recvflag = true;
     }
     usleep(1000);
-  }
+  } while (!is_recvflag && (std::chrono::duration_cast<std::chrono::milliseconds>(
+    std::chrono::steady_clock::now() - last_time).count() < timeout));
 
   if (is_recvflag) {
     last_pubdata_times_ = std::chrono::steady_clock::now();
