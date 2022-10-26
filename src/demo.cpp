@@ -111,16 +111,13 @@ int main(int argc, char **argv) {
   rclcpp::WallRate r(10); //10hz
 
   ldlidar::Points2D laser_scan_points;
-  double lidar_spin_freq;
+  double lidar_scan_freq;
   RCLCPP_INFO(node->get_logger(), "Publish topic message:ldlidar scan data.");
   while (rclcpp::ok()) {
     switch (ldlidarnode->GetLaserScanData(laser_scan_points, 1500)){
       case ldlidar::LidarStatus::NORMAL: 
-        ldlidarnode->GetLidarSpinFreq(lidar_spin_freq);
-        ToLaserscanMessagePublish(laser_scan_points, lidar_spin_freq, setting, node, publisher);
-        break;
-      case ldlidar::LidarStatus::ERROR:
-        RCLCPP_ERROR(node->get_logger(), "ldlidar driver error.");
+        ldlidarnode->GetLidarScanFreq(lidar_scan_freq);
+        ToLaserscanMessagePublish(laser_scan_points, lidar_scan_freq, setting, node, publisher);
         break;
       case ldlidar::LidarStatus::DATA_TIME_OUT:
         RCLCPP_ERROR(node->get_logger(), "get ldlidar data is time out, please check your lidar device.");

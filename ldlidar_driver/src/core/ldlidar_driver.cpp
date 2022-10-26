@@ -25,7 +25,7 @@ namespace ldlidar {
 bool LDLidarDriver::is_ok_ = false;
 
 LDLidarDriver::LDLidarDriver() 
-  : sdk_version_number_("v3.0.2"),
+  : sdk_version_number_("v3.0.3"),
     is_start_flag_(false),
     register_get_timestamp_handle_(nullptr),
     comm_pkg_(new LiPkg()),
@@ -286,7 +286,7 @@ LidarStatus LDLidarDriver::GetLaserScanData(LaserScan& dst, int64_t timeout) {
   }
 }
 
-bool  LDLidarDriver::GetLidarSpinFreq(double& spin_hz) {
+bool  LDLidarDriver::GetLidarScanFreq(double& spin_hz) {
   if (!is_start_flag_) {
     return false;
   }

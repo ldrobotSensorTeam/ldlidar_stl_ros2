@@ -90,8 +90,16 @@ void LogModule::LogPrintInf(const char* format,...) {
 			case DEBUG_LEVEL: {
 				//时间戳 uint is seconds
 				char s_stamp[100] = {0};
-				int64_t timestamp = GetCurrentLocalTimeStamp();
-				snprintf(s_stamp, 100, "[%ld.%ld]", (timestamp/1000000000), (timestamp%1000000000));
+				uint64_t timestamp = GetCurrentLocalTimeStamp();
+#ifdef __LP64__
+        snprintf(s_stamp, 100, "[%lu.%lu]", (timestamp/1000000000), (timestamp%1000000000));
+#else
+#ifdef _WIN64
+        snprintf(s_stamp, 100, "[%lu.%lu]", (timestamp/1000000000), (timestamp%1000000000));
+#else
+        snprintf(s_stamp, 100, "[%llu.%llu]", (timestamp/1000000000), (timestamp%1000000000));
+#endif
+#endif
 				str_temp.append(s_stamp);
 			}
 				break;
@@ -132,8 +140,16 @@ void LogModule::LogPrintNoLocationInf(const char* format,...) {
 		
 		//时间戳 uint is seconds
 		char s_stamp[100] = {0};
-		int64_t timestamp = GetCurrentLocalTimeStamp();
-		snprintf(s_stamp, 100, "[%ld.%ld]", (timestamp/1000000000), (timestamp%1000000000));
+		uint64_t timestamp = GetCurrentLocalTimeStamp();
+#ifdef __LP64__
+		snprintf(s_stamp, 100, "[%lu.%lu]", (timestamp/1000000000), (timestamp%1000000000));
+#else
+#ifdef _WIN64
+    snprintf(s_stamp, 100, "[%lu.%lu]", (timestamp/1000000000), (timestamp%1000000000));
+#else
+    snprintf(s_stamp, 100, "[%llu.%llu]", (timestamp/1000000000), (timestamp%1000000000));
+#endif
+#endif
 		str_temp.append(s_stamp);
 		
 		va_list ptr;

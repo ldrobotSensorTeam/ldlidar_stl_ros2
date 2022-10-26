@@ -116,7 +116,7 @@ class LDLidarDriver {
    * @retval value is true, get lidar laser scan frequence is success;
    *   value is false, get lidar laser scan ferquence is fail.
   */
-  bool GetLidarSpinFreq(double& spin_hz);
+  bool GetLidarScanFreq(double& spin_hz);
 
   /**
    * @brief register get timestamp handle functional.
