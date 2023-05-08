@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
     type_name = ldlidar::LDType::LD_06;
   } else if (product_name == "LDLiDAR_LD19") {
     type_name = ldlidar::LDType::LD_19;
+  } else if (product_name == "LDLiDAR_STL27L") {
+    type_name = ldlidar::LDType::STL_27L;
   } else {
     RCLCPP_ERROR(node->get_logger(), "Error, input <product_name> is illegal.");
     exit(EXIT_FAILURE);
@@ -162,7 +164,7 @@ void  ToLaserscanMessagePublish(ldlidar::Points2D& src,  double lidar_spin_freq,
   angle_min = 0;
   angle_max = (2 * M_PI);
   range_min = 0.02;
-  range_max = 12;
+  range_max = 25;
   int beam_size = static_cast<int>(src.size());
   angle_increment = (angle_max - angle_min) / (float)(beam_size -1);
   // Calculate the number of scanning points
