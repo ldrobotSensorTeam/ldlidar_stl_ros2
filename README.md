@@ -5,6 +5,7 @@
 >此SDK仅适用于深圳乐动机器人有限公司销售的激光雷达产品，产品型号为:
 > - LDROBOT LiDAR LD06
 > - LDROBOT LiDAR LD19
+> - LDROBOT LiDAR STL-27L
 
 ## 0. 获取雷达的ROS2功能包
 ```bash
@@ -15,8 +16,6 @@ mkdir -p ldlidar_ros2_ws/src
 cd ldlidar_ros2_ws/src
 
 git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
-# 或者
-git clone  https://gitee.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
 ```
 ## 1. 系统设置
 - 第一步，通过板载串口或者USB转串口模块(例如,cp2102模块)的方式使雷达连接到你的系统主板.
@@ -138,6 +137,16 @@ colcon build
   ``` bash
   ros2 launch ldlidar_stl_ros2 viewer_ld19.launch.py
   ```
+  
+- 产品型号为 LDROBOT LiDAR STL-27L
+  - 启动stl27l lidar node:
+  ``` bash
+  ros2 launch ldlidar_stl_ros2 stl27l.launch.py
+  ```
+  - 启动stl27l lidar node并显示激光数据在Rviz2上:
+  ``` bash
+  ros2 launch ldlidar_stl_ros2 viewer_stl27l.launch.py
+  ```
 
 ##   4. 测试
 
@@ -152,6 +161,8 @@ rviz2
 > This SDK is only applicable to the LiDAR products sold by Shenzhen LDROBOT Co., LTD. The product models are :
 > - LDROBOT LiDAR LD06
 > - LDROBOT LiDAR LD19
+> - LDROBOT LiDAR STL-27L
+
 ## step 0: get LiDAR ROS2 Package
 ```bash
 cd ~
@@ -161,8 +172,6 @@ mkdir -p ldlidar_ros2_ws/src
 cd ldlidar_ros2_ws/src
 
 git clone  https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
-# or
-git clone  https://gitee.com/ldrobotSensorTeam/ldlidar_stl_ros2.git
 ```
 ## step 1: system setup
 - Connect the LiDAR to your system motherboard via an onboard serial port or usB-to-serial module (for example, CP2102 module).
@@ -288,6 +297,16 @@ colcon build
   - start ld19 lidar node and show on the Rviz2:
   ``` bash
   ros2 launch ldlidar_stl_ros2 viewer_ld19.launch.py
+  ```
+  
+- The product is LDROBOT LiDAR STL-27L
+  - start stl27l lidar node:
+  ``` bash
+  ros2 launch ldlidar_stl_ros2 stl27l.launch.py
+  ```
+  - start stl27l lidar node and show on the Rviz2:
+  ``` bash
+  ros2 launch ldlidar_stl_ros2 viewer_stl27l.launch.py
   ```
 
 ## step 4: test
