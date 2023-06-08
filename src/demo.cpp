@@ -32,8 +32,11 @@ int main(int argc, char **argv) {
   auto node = std::make_shared<rclcpp::Node>("ldlidar_published"); // create a ROS2 Node
   std::string product_name;
 	std::string topic_name;
+  std::string comm_mode = "serial";
 	std::string port_name;
   int serial_port_baudrate;
+  std::string server_ip;
+  int server_port;
   ldlidar::LDType type_name;
   LaserScanSetting setting;
 	setting.frame_id = "base_laser";
@@ -46,8 +49,11 @@ int main(int argc, char **argv) {
   node->declare_parameter<std::string>("product_name", product_name);
   node->declare_parameter<std::string>("topic_name", topic_name);
   node->declare_parameter<std::string>("frame_id", setting.frame_id);
+  node->declare_parameter<std::string>("comm_mode", comm_mode);
   node->declare_parameter<std::string>("port_name", port_name);
   node->declare_parameter<int>("port_baudrate", serial_port_baudrate);
+  node->declare_parameter<std::string>("server_ip", server_ip);
+  node->declare_parameter<int>("server_port", server_port);
   node->declare_parameter<bool>("laser_scan_dir", setting.laser_scan_dir);
   node->declare_parameter<bool>("enable_angle_crop_func", setting.enable_angle_crop_func);
   node->declare_parameter<double>("angle_crop_min", setting.angle_crop_min);
@@ -57,12 +63,18 @@ int main(int argc, char **argv) {
   node->get_parameter("product_name", product_name);
   node->get_parameter("topic_name", topic_name);
   node->get_parameter("frame_id", setting.frame_id);
+  node->get_parameter("comm_mode", comm_mode);
   node->get_parameter("port_name", port_name);
   node->get_parameter("port_baudrate", serial_port_baudrate);
+  node->get_parameter("server_ip", server_ip);
+  node->get_parameter("server_port", server_port);
   node->get_parameter("laser_scan_dir", setting.laser_scan_dir);
   node->get_parameter("enable_angle_crop_func", setting.enable_angle_crop_func);
   node->get_parameter("angle_crop_min", setting.angle_crop_min);
   node->get_parameter("angle_crop_max", setting.angle_crop_max);
+  const char *net_ip = server_ip.c_str();
+  char net_port[6];
+  snprintf(net_port, 6, "%d", server_port);
 
   ldlidar::LDLidarDriver* ldlidarnode = new ldlidar::LDLidarDriver();
 
@@ -70,8 +82,11 @@ int main(int argc, char **argv) {
   RCLCPP_INFO(node->get_logger(), "<product_name>: %s", product_name.c_str());
   RCLCPP_INFO(node->get_logger(), "<topic_name>: %s", topic_name.c_str());
   RCLCPP_INFO(node->get_logger(), "<frame_id>: %s", setting.frame_id.c_str());
+  RCLCPP_INFO(node->get_logger(), "<comm_mode>: %s", comm_mode.c_str());
   RCLCPP_INFO(node->get_logger(), "<port_name>: %s", port_name.c_str());
   RCLCPP_INFO(node->get_logger(), "<port_baudrate>: %d", serial_port_baudrate);
+  RCLCPP_INFO(node->get_logger(), "<server_ip>: %s", net_ip);
+  RCLCPP_INFO(node->get_logger(), "<server_port>: %s", net_port);
   RCLCPP_INFO(node->get_logger(), "<laser_scan_dir>: %s", (setting.laser_scan_dir?"Counterclockwise":"Clockwise"));
   RCLCPP_INFO(node->get_logger(), "<enable_angle_crop_func>: %s", (setting.enable_angle_crop_func?"true":"false"));
   RCLCPP_INFO(node->get_logger(), "<angle_crop_min>: %f", setting.angle_crop_min);
@@ -88,11 +103,29 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
+  ldlidar::CommunicationModeTypeDef comm_mode_d;
+  if (comm_mode == "serial") {
+    comm_mode_d = ldlidar::COMM_SERIAL_MODE;
+  } else if (comm_mode == "udp_server") {
+    comm_mode_d = ldlidar::COMM_UDP_SERVER_MODE;
+  } else if (comm_mode == "udp_client") {
+    comm_mode_d = ldlidar::COMM_UDP_CLIENT_MODE;
+  } else if (comm_mode == "tcp_server") {
+    comm_mode_d = ldlidar::COMM_TCP_SERVER_MODE;
+  } else if (comm_mode == "tcp_client") {
+    comm_mode_d = ldlidar::COMM_TCP_CLIENT_MODE;
+  } else {
+    RCLCPP_ERROR(node->get_logger(), "Error, input <comm_mode> is illegal.");
+    exit(EXIT_FAILURE);
+  }
+
   ldlidarnode->RegisterGetTimestampFunctional(std::bind(&GetSystemTimeStamp)); 
 
   ldlidarnode->EnableFilterAlgorithnmProcess(true);
 
-  if (ldlidarnode->Start(type_name, port_name, serial_port_baudrate, ldlidar::COMM_SERIAL_MODE)) {
+  if (comm_mode_d == ldlidar::COMM_SERIAL_MODE ?
+      ldlidarnode->Start(type_name, port_name, serial_port_baudrate, comm_mode_d) :
+      ldlidarnode->Start(type_name, net_ip, net_port, comm_mode_d)) {
     RCLCPP_INFO(node->get_logger(), "ldlidar node start is success");
   } else {
     RCLCPP_ERROR(node->get_logger(), "ldlidar node start is fail");
