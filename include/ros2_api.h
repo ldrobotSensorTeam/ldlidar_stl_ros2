@@ -38,6 +38,8 @@ struct LaserScanSetting
   double y_crop_min;
   double y_crop_max;
   int  bins;
+  double range_min;
+  double range_max;
 };
 
 #endif //__ROS_API_H__

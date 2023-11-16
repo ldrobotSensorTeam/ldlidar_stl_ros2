@@ -41,12 +41,14 @@ int main(int argc, char **argv) {
   setting.enable_angle_crop_func = false;
   setting.angle_crop_min = 0.0;
   setting.angle_crop_max = 0.0;
-  setting.bins = 0.0;
+  setting.bins = 0;
   setting.enable_box_crop_func = false;
   setting.x_crop_min = 0.0;
   setting.x_crop_max = 0.0;
   setting.y_crop_min = 0.0;
   setting.y_crop_max = 0.0;
+  setting.range_min = 0.03;
+  setting.range_max = 25.0;
   
   // declare ros2 param
   node->declare_parameter<std::string>("product_name", product_name);
@@ -64,6 +66,8 @@ int main(int argc, char **argv) {
   node->declare_parameter<double>("x_crop_max", setting.x_crop_max);
   node->declare_parameter<double>("y_crop_min", setting.y_crop_min);
   node->declare_parameter<double>("y_crop_max", setting.y_crop_max);
+  node->declare_parameter<double>("range_min", setting.range_min);
+  node->declare_parameter<double>("range_max", setting.range_max);
 
   // get ros2 param
   node->get_parameter("product_name", product_name);
@@ -81,6 +85,8 @@ int main(int argc, char **argv) {
   node->get_parameter("x_crop_max", setting.x_crop_max);
   node->get_parameter("y_crop_min", setting.y_crop_min);
   node->get_parameter("y_crop_max", setting.y_crop_max);
+  node->get_parameter("range_min", setting.range_min);
+  node->get_parameter("range_max", setting.range_max);
 
   ldlidar::LDLidarDriver* ldlidarnode = new ldlidar::LDLidarDriver();
 
@@ -174,7 +180,7 @@ int main(int argc, char **argv) {
 
 void  ToLaserscanMessagePublish(ldlidar::Points2D& src,  double lidar_spin_freq, LaserScanSetting& setting,
   rclcpp::Node::SharedPtr& node, rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr& lidarpub) {
-  float angle_min, angle_max, range_min, range_max, angle_increment;
+  float angle_min, angle_max, angle_increment;
   double scan_time;
   rclcpp::Time start_scan_time;
   static rclcpp::Time end_scan_time;
@@ -199,8 +205,6 @@ void  ToLaserscanMessagePublish(ldlidar::Points2D& src,  double lidar_spin_freq,
   // Adjust the parameters according to the demand
   angle_min = 0;
   angle_max = (2 * M_PI);
-  range_min = 0.02;
-  range_max = 25;
   angle_increment = (angle_max - angle_min) / (float)(beam_size -1);
   // Calculate the number of scanning points
   if (lidar_spin_freq > 0) {
@@ -209,8 +213,8 @@ void  ToLaserscanMessagePublish(ldlidar::Points2D& src,  double lidar_spin_freq,
     output.header.frame_id = setting.frame_id;
     output.angle_min = angle_min;
     output.angle_max = angle_max;
-    output.range_min = range_min;
-    output.range_max = range_max;
+    output.range_min = setting.range_min;
+    output.range_max = setting.range_max;
     output.angle_increment = angle_increment;
     if (beam_size <= 1) {
       output.time_increment = 0;
