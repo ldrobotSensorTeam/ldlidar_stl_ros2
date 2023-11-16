@@ -31,16 +31,24 @@ int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("ldlidar_published"); // create a ROS2 Node
   std::string product_name;
-	std::string topic_name;
-	std::string port_name;
-  int serial_port_baudrate;
+  std::string topic_name;
+  std::string port_name;
+  int serial_port_baudrate = 0;
   ldlidar::LDType type_name;
   LaserScanSetting setting;
-	setting.frame_id = "base_laser";
+  setting.frame_id = "base_laser";
   setting.laser_scan_dir = true;
   setting.enable_angle_crop_func = false;
   setting.angle_crop_min = 0.0;
   setting.angle_crop_max = 0.0;
+  setting.bins = 0;
+  setting.enable_box_crop_func = false;
+  setting.x_crop_min = 0.0;
+  setting.x_crop_max = 0.0;
+  setting.y_crop_min = 0.0;
+  setting.y_crop_max = 0.0;
+  setting.range_min = 0.03;
+  setting.range_max = 25.0;
   
   // declare ros2 param
   node->declare_parameter<std::string>("product_name", product_name);
@@ -52,6 +60,14 @@ int main(int argc, char **argv) {
   node->declare_parameter<bool>("enable_angle_crop_func", setting.enable_angle_crop_func);
   node->declare_parameter<double>("angle_crop_min", setting.angle_crop_min);
   node->declare_parameter<double>("angle_crop_max", setting.angle_crop_max);
+  node->declare_parameter<int>("bins", setting.bins);
+  node->declare_parameter<bool>("enable_box_crop_func", setting.enable_box_crop_func);
+  node->declare_parameter<double>("x_crop_min", setting.x_crop_min);
+  node->declare_parameter<double>("x_crop_max", setting.x_crop_max);
+  node->declare_parameter<double>("y_crop_min", setting.y_crop_min);
+  node->declare_parameter<double>("y_crop_max", setting.y_crop_max);
+  node->declare_parameter<double>("range_min", setting.range_min);
+  node->declare_parameter<double>("range_max", setting.range_max);
 
   // get ros2 param
   node->get_parameter("product_name", product_name);
@@ -63,6 +79,14 @@ int main(int argc, char **argv) {
   node->get_parameter("enable_angle_crop_func", setting.enable_angle_crop_func);
   node->get_parameter("angle_crop_min", setting.angle_crop_min);
   node->get_parameter("angle_crop_max", setting.angle_crop_max);
+  node->get_parameter("bins", setting.bins);
+  node->get_parameter("enable_box_crop_func", setting.enable_box_crop_func);
+  node->get_parameter("x_crop_min", setting.x_crop_min);
+  node->get_parameter("x_crop_max", setting.x_crop_max);
+  node->get_parameter("y_crop_min", setting.y_crop_min);
+  node->get_parameter("y_crop_max", setting.y_crop_max);
+  node->get_parameter("range_min", setting.range_min);
+  node->get_parameter("range_max", setting.range_max);
 
   ldlidar::LDLidarDriver* ldlidarnode = new ldlidar::LDLidarDriver();
 
@@ -76,6 +100,16 @@ int main(int argc, char **argv) {
   RCLCPP_INFO(node->get_logger(), "<enable_angle_crop_func>: %s", (setting.enable_angle_crop_func?"true":"false"));
   RCLCPP_INFO(node->get_logger(), "<angle_crop_min>: %f", setting.angle_crop_min);
   RCLCPP_INFO(node->get_logger(), "<angle_crop_max>: %f", setting.angle_crop_max);
+  RCLCPP_INFO(node->get_logger(), "<bins>: %d", setting.bins);
+  RCLCPP_INFO(node->get_logger(), "<enable_box_crop_func>: %s", (setting.enable_box_crop_func?"true":"false"));
+  RCLCPP_INFO(node->get_logger(), "<x_crop_min>: %f", setting.x_crop_min);
+  RCLCPP_INFO(node->get_logger(), "<x_crop_max>: %f", setting.x_crop_max);
+  RCLCPP_INFO(node->get_logger(), "<y_crop_min>: %f", setting.y_crop_min);
+  RCLCPP_INFO(node->get_logger(), "<y_crop_max>: %f", setting.y_crop_max);
+
+  if (setting.bins > 0 && setting.bins < 10) {
+    RCLCPP_INFO(node->get_logger(), "recommend increasing bin number");
+  }
 
   if (product_name == "LDLiDAR_LD06") {
     type_name = ldlidar::LDType::LD_06;
@@ -146,11 +180,19 @@ int main(int argc, char **argv) {
 
 void  ToLaserscanMessagePublish(ldlidar::Points2D& src,  double lidar_spin_freq, LaserScanSetting& setting,
   rclcpp::Node::SharedPtr& node, rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr& lidarpub) {
-  float angle_min, angle_max, range_min, range_max, angle_increment;
+  float angle_min, angle_max, angle_increment;
   double scan_time;
   rclcpp::Time start_scan_time;
   static rclcpp::Time end_scan_time;
   static bool first_scan = true;
+
+  int beam_size = 0;
+
+  if (setting.bins > 0) {
+    beam_size = setting.bins;
+  } else {
+    beam_size = static_cast<int>(src.size());
+  }
 
   start_scan_time = node->now();
   scan_time = (start_scan_time.seconds() - end_scan_time.seconds());
@@ -163,9 +205,6 @@ void  ToLaserscanMessagePublish(ldlidar::Points2D& src,  double lidar_spin_freq,
   // Adjust the parameters according to the demand
   angle_min = 0;
   angle_max = (2 * M_PI);
-  range_min = 0.02;
-  range_max = 25;
-  int beam_size = static_cast<int>(src.size());
   angle_increment = (angle_max - angle_min) / (float)(beam_size -1);
   // Calculate the number of scanning points
   if (lidar_spin_freq > 0) {
@@ -174,8 +213,8 @@ void  ToLaserscanMessagePublish(ldlidar::Points2D& src,  double lidar_spin_freq,
     output.header.frame_id = setting.frame_id;
     output.angle_min = angle_min;
     output.angle_max = angle_max;
-    output.range_min = range_min;
-    output.range_max = range_max;
+    output.range_min = setting.range_min;
+    output.range_max = setting.range_max;
     output.angle_increment = angle_increment;
     if (beam_size <= 1) {
       output.time_increment = 0;
@@ -198,6 +237,16 @@ void  ToLaserscanMessagePublish(ldlidar::Points2D& src,  double lidar_spin_freq,
 
       if (setting.enable_angle_crop_func) { // Angle crop setting, Mask data within the set angle range
         if ((dir_angle >= setting.angle_crop_min) && (dir_angle <= setting.angle_crop_max)) {
+          range = std::numeric_limits<float>::quiet_NaN();
+          intensity = std::numeric_limits<float>::quiet_NaN();
+        }
+      }
+
+      if (setting.enable_box_crop_func) { // Box crop setting, Mask data within the box
+        double x = range*cos(dir_angle*M_PI/180);
+        double y = -range*sin(dir_angle*M_PI/180);
+        if (x > setting.x_crop_min && x < setting.x_crop_max &&
+            y > setting.y_crop_min && y < setting.y_crop_max) {
           range = std::numeric_limits<float>::quiet_NaN();
           intensity = std::numeric_limits<float>::quiet_NaN();
         }

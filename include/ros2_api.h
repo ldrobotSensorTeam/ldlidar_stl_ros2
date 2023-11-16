@@ -30,8 +30,16 @@ struct LaserScanSetting
   std::string frame_id;
   bool laser_scan_dir;
   bool enable_angle_crop_func;
+  bool enable_box_crop_func;
   double angle_crop_min;
   double angle_crop_max;
+  double x_crop_min;
+  double x_crop_max;
+  double y_crop_min;
+  double y_crop_max;
+  int  bins;
+  double range_min;
+  double range_max;
 };
 
 #endif //__ROS_API_H__
